@@ -1,0 +1,1279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Sift — resume screener</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --paper:      #F1F4F0;
+    --surface:    #FFFFFF;
+    --surface-2:  #F7F9F6;
+    --ink:        #16211C;
+    --muted:      #5F6E66;
+    --faint:      #8A968E;
+    --line:       #E1E7DE;
+    --line-strong:#CDD6C9;
+    --evergreen:  #1C6B4A;
+    --evergreen-d:#134D36;
+    --teal:       #6FB3A6;
+    --strong:     #1F9D5B;
+    --moderate:   #C9911B;
+    --weak:       #C0563C;
+    --strong-bg:  #E6F5EC;
+    --moderate-bg:#FaF1DA;
+    --weak-bg:    #F8E7E1;
+    --shadow:     0 1px 2px rgba(20,40,30,.04), 0 8px 24px rgba(20,40,30,.06);
+    --shadow-lg:  0 12px 40px rgba(20,40,30,.14);
+    --radius:     14px;
+    --display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+    --body: "Inter", system-ui, -apple-system, sans-serif;
+    --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: var(--body);
+    background: var(--paper);
+    color: var(--ink);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  .hidden { display: none !important; }
+  button { font-family: var(--body); cursor: pointer; }
+  :focus-visible { outline: 2.5px solid var(--evergreen); outline-offset: 2px; border-radius: 4px; }
+
+  /* ---------- brand mark ---------- */
+  .mark { display: inline-flex; align-items: center; gap: 10px; }
+  .mark svg { display: block; }
+  .mark .word {
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: 21px;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+  }
+  .mark .dot { color: var(--evergreen); }
+
+  /* ================= AUTH ================= */
+  .auth {
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: 1.05fr 1fr;
+  }
+  .auth__brand {
+    background:
+      radial-gradient(120% 90% at 15% 0%, #1F7B54 0%, #164e37 55%, #0f3b2a 100%);
+    color: #EAF3ED;
+    padding: 56px 60px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+    overflow: hidden;
+  }
+  .auth__brand .mark .word { color: #fff; }
+  .auth__brand .mark .dot { color: #8FE3BE; }
+  .brand__thesis {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: clamp(30px, 3.4vw, 46px);
+    line-height: 1.06;
+    letter-spacing: -0.03em;
+    margin: 0 0 18px;
+    max-width: 12ch;
+  }
+  .brand__sub {
+    color: #B8D6C6;
+    font-size: 15.5px;
+    max-width: 34ch;
+    margin: 0;
+  }
+  /* ambient ranked-bars signature */
+  .brand__viz { display: flex; flex-direction: column; gap: 11px; margin-top: 8px; }
+  .brand__bar { height: 12px; border-radius: 6px; background: rgba(255,255,255,.14); overflow: hidden; }
+  .brand__bar span {
+    display: block; height: 100%; border-radius: 6px;
+    background: linear-gradient(90deg, #8FE3BE, #4FBF8B);
+    transform-origin: left;
+    animation: grow 1.1s cubic-bezier(.2,.7,.2,1) both;
+  }
+  @keyframes grow { from { transform: scaleX(0); } }
+  .brand__foot { font-size: 12.5px; color: #8FB6A3; letter-spacing: .01em; }
+
+  .auth__panel {
+    background: var(--surface);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 28px;
+  }
+  .authcard { width: 100%; max-width: 380px; }
+  .authcard h1 {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 27px;
+    letter-spacing: -0.02em;
+    margin: 0 0 4px;
+  }
+  .authcard .lede { color: var(--muted); font-size: 14.5px; margin: 0 0 26px; }
+
+  .tabs { display: inline-flex; background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px; padding: 3px; margin-bottom: 22px; }
+  .tabs button {
+    border: 0; background: transparent; color: var(--muted);
+    font-size: 13.5px; font-weight: 600; padding: 7px 16px; border-radius: 7px;
+  }
+  .tabs button.active { background: var(--surface); color: var(--ink); box-shadow: var(--shadow); }
+
+  .field { margin-bottom: 15px; }
+  .field label { display: block; font-size: 12.5px; font-weight: 600; color: var(--muted); margin-bottom: 6px; }
+  .field input {
+    width: 100%; padding: 11px 13px; font-size: 14.5px; font-family: var(--body);
+    color: var(--ink); background: var(--surface);
+    border: 1.5px solid var(--line-strong); border-radius: 10px; transition: border-color .15s, box-shadow .15s;
+  }
+  .field input:focus { outline: none; border-color: var(--evergreen); box-shadow: 0 0 0 3px rgba(28,107,74,.13); }
+
+  .roletoggle { display: flex; gap: 8px; }
+  .roletoggle button {
+    flex: 1; padding: 9px; font-size: 13px; font-weight: 600; color: var(--muted);
+    background: var(--surface); border: 1.5px solid var(--line-strong); border-radius: 10px;
+  }
+  .roletoggle button.active { border-color: var(--evergreen); color: var(--evergreen-d); background: var(--strong-bg); }
+
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    font-weight: 600; font-size: 14.5px; border: 0; border-radius: 10px; padding: 12px 18px;
+    background: var(--evergreen); color: #fff; transition: background .15s, transform .05s;
+  }
+  .btn:hover { background: var(--evergreen-d); }
+  .btn:active { transform: translateY(1px); }
+  .btn[disabled] { opacity: .6; cursor: default; }
+  .btn--block { width: 100%; }
+  .btn--ghost { background: var(--surface); color: var(--ink); border: 1.5px solid var(--line-strong); }
+  .btn--ghost:hover { background: var(--surface-2); }
+  .btn--sm { padding: 8px 13px; font-size: 13px; }
+
+  .formmsg { font-size: 13px; margin-top: 14px; padding: 10px 12px; border-radius: 9px; display: none; }
+  .formmsg.show { display: block; }
+  .formmsg.err { background: var(--weak-bg); color: #92351f; }
+  .formmsg.ok  { background: var(--strong-bg); color: #14623a; }
+
+  /* ================= APP SHELL ================= */
+  .topbar {
+    height: 62px; background: var(--surface); border-bottom: 1px solid var(--line);
+    display: flex; align-items: center; justify-content: space-between; padding: 0 22px;
+    position: sticky; top: 0; z-index: 20;
+  }
+  .topbar .who { display: flex; align-items: center; gap: 14px; font-size: 13.5px; color: var(--muted); }
+  .topbar .who b { color: var(--ink); font-weight: 600; }
+  .avatar {
+    width: 30px; height: 30px; border-radius: 50%; background: var(--strong-bg); color: var(--evergreen-d);
+    display: grid; place-items: center; font-weight: 700; font-size: 13px;
+  }
+
+  .layout { display: grid; grid-template-columns: 248px 1fr; align-items: start; max-width: 1240px; margin: 0 auto; }
+  @media (max-width: 640px) { .layout { grid-template-columns: 1fr; } }
+
+  .sidebar { display: flex; flex-direction: column; padding: 0; border-right: 1px solid var(--line); position: sticky; top: 0; height: 100vh; background: var(--surface); }
+  .sidebar__brand { padding: 20px 18px 16px; border-bottom: 1px solid var(--line); }
+  .sidebar__scroll { flex: 1 1 auto; overflow-y: auto; padding: 16px 14px; }
+  .sidebar__user { flex: none; display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-top: 1px solid var(--line); }
+  .sidebar__user .avatar { flex: none; }
+  .sidebar__user .uinfo { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+  .sidebar__user .uname { font-size: 13px; font-weight: 600; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sidebar__user .urole { align-self: flex-start; font-size: 9.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--evergreen-d); background: var(--strong-bg); border-radius: 999px; padding: 1px 7px; }
+  .iconbtn { flex: none; width: 32px; height: 32px; border-radius: 9px; border: 1px solid var(--line); background: transparent; color: var(--muted); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background .15s, color .15s; }
+  .iconbtn:hover { background: var(--surface-2); color: var(--ink); }
+  @media (max-width: 640px) { .sidebar { position: static; height: auto; border-right: 0; border-bottom: 1px solid var(--line); } .sidebar__scroll { overflow: visible; } }
+  .sidebar__head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; padding: 0 2px; }
+  .sidebar__head .lbl { display: inline-flex; align-items: center; gap: 7px; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--faint); font-weight: 700; margin: 0; }
+  .sidebar__head .count { font-family: var(--mono); font-size: 10.5px; font-weight: 700; color: var(--evergreen-d); background: var(--strong-bg); border-radius: 999px; padding: 1px 7px; }
+
+  .joblist { display: flex; flex-direction: column; gap: 6px; }
+  .jobitem {
+    display: flex; align-items: center; gap: 11px; text-align: left; width: 100%;
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: 12px; padding: 9px 11px; cursor: pointer;
+    transition: border-color .15s, background .15s, box-shadow .15s, transform .1s;
+  }
+  .jobitem:hover { border-color: var(--line-strong); background: var(--surface-2); }
+  .jobitem.active { border-color: var(--strong); background: var(--strong-bg); box-shadow: 0 1px 3px rgba(19,77,54,.10); }
+  .jobitem__badge {
+    flex: none; width: 32px; height: 32px; border-radius: 9px; background: var(--surface-2);
+    border: 1px solid var(--line); color: var(--evergreen-d); display: flex; align-items: center;
+    justify-content: center; font-family: var(--display); font-weight: 800; font-size: 14px;
+    transition: background .15s, color .15s, border-color .15s;
+  }
+  .jobitem.active .jobitem__badge { background: var(--evergreen); border-color: var(--evergreen); color: #fff; }
+  .jobitem__body { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+  .jobitem .t { font-weight: 600; font-size: 13.5px; line-height: 1.3; color: var(--ink); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .jobitem .m { font-size: 11px; color: var(--faint); font-family: var(--mono); letter-spacing: .01em; }
+
+  .content { padding: 26px 30px 60px; min-width: 0; }
+  @media (max-width: 560px) { .content { padding: 20px 16px 48px; } }
+
+  .jobhead { margin-bottom: 22px; }
+  .jobhead h1 { font-family: var(--display); font-weight: 700; font-size: 27px; letter-spacing: -0.02em; margin: 0 0 12px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 7px; }
+  .chip {
+    font-size: 12.5px; font-weight: 500; color: var(--evergreen-d); background: var(--strong-bg);
+    border: 1px solid #CBE7D6; padding: 4px 10px; border-radius: 999px;
+  }
+  .chip.req::before { content: ""; }
+
+  .card {
+    background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+    box-shadow: var(--shadow); padding: 20px; margin-bottom: 22px;
+  }
+  .card__title { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  .card__title h3 { font-size: 15px; font-weight: 700; margin: 0; letter-spacing: -0.01em; }
+  .card__title .hint { font-size: 12px; color: var(--faint); }
+
+  /* upload dropzone */
+  .drop {
+    border: 1.6px dashed var(--line-strong); border-radius: 12px; background: var(--surface-2);
+    padding: 26px 20px; text-align: center; transition: border-color .15s, background .15s;
+  }
+  .drop.drag { border-color: var(--evergreen); background: var(--strong-bg); }
+  .drop p { margin: 8px 0 2px; font-size: 14px; }
+  .drop .sub { color: var(--faint); font-size: 12.5px; }
+  .drop .pick { color: var(--evergreen-d); font-weight: 600; text-decoration: underline; cursor: pointer; }
+  .filelist { list-style: none; margin: 14px 0 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+  .filelist li { display: flex; align-items: center; gap: 9px; font-size: 13px; color: var(--muted); }
+  .filelist .dotmark { width: 6px; height: 6px; border-radius: 50%; background: var(--teal); }
+  .uploadbar { display: flex; gap: 10px; align-items: center; margin-top: 16px; }
+
+  /* ---------- ranked leaderboard (signature) ---------- */
+  .rank { display: flex; flex-direction: column; gap: 12px; }
+  .cand {
+    background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+    box-shadow: var(--shadow); overflow: hidden;
+  }
+  .cand__main { display: grid; grid-template-columns: 46px 1fr auto; gap: 16px; align-items: center; padding: 16px 18px; }
+  @media (max-width: 560px) { .cand__main { grid-template-columns: 34px 1fr; } .cand__final { grid-column: 2; justify-self: start; margin-top: 4px; } }
+  .cand__num { font-family: var(--display); font-weight: 800; font-size: 26px; color: var(--line-strong); text-align: center; letter-spacing: -0.03em; }
+  .cand.top .cand__num { color: var(--evergreen); }
+  .cand__id { min-width: 0; }
+  .cand__name { font-weight: 600; font-size: 16px; display: flex; align-items: center; gap: 9px; flex-wrap: wrap; }
+  .fit { font-size: 11px; font-weight: 700; letter-spacing: .03em; text-transform: uppercase; padding: 2px 8px; border-radius: 999px; }
+  .fit.strong { color: var(--strong); background: var(--strong-bg); }
+  .fit.moderate { color: var(--moderate); background: var(--moderate-bg); }
+  .fit.weak { color: var(--weak); background: var(--weak-bg); }
+  .cand__meta { font-size: 12.5px; color: var(--faint); margin-top: 2px; font-family: var(--mono); }
+
+  /* composition meter */
+  .meter { margin-top: 11px; }
+  .meter__track { height: 12px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 7px; overflow: hidden; display: flex; }
+  .meter__seg { height: 100%; transition: width .9s cubic-bezier(.2,.7,.2,1); }
+  .meter__seg.sim { background: var(--teal); }
+  .meter__seg.llm { background: var(--evergreen); }
+  .meter__legend { display: flex; gap: 16px; margin-top: 8px; font-size: 11.5px; color: var(--muted); flex-wrap: wrap; }
+  .meter__legend b { font-family: var(--mono); color: var(--ink); font-weight: 700; }
+  .swatch { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 5px; vertical-align: middle; }
+  .swatch.sim { background: var(--teal); }
+  .swatch.llm { background: var(--evergreen); }
+
+  .cand__final { text-align: right; }
+  .cand__final .n { font-family: var(--mono); font-weight: 700; font-size: 30px; line-height: 1; letter-spacing: -0.02em; }
+  .cand__final .l { font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--faint); margin-top: 3px; }
+
+  .cand__why { padding: 0 18px 16px 80px; }
+  @media (max-width: 560px) { .cand__why { padding: 0 18px 16px; } }
+  .cand__why p { margin: 0; font-size: 13.5px; color: var(--muted); font-style: italic; }
+  .cand__actions { display: flex; align-items: center; gap: 14px; margin-top: 8px; }
+  /* pipeline stage selector (styled like a status pill) */
+  .stagesel { font: inherit; font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; border: 1px solid var(--line); border-radius: 999px; padding: 4px 10px; cursor: pointer; background: var(--surface); color: var(--muted); -webkit-appearance: none; appearance: none; }
+  .stagesel:focus { outline: none; box-shadow: 0 0 0 3px rgba(28,107,74,.13); }
+  .stagesel.stage-new { color: var(--faint); background: var(--surface-2); border-color: var(--line-strong); }
+  .stagesel.stage-screened { color: #1b6fb0; background: #e9f2fb; border-color: #bcd8f2; }
+  .stagesel.stage-interview { color: var(--moderate); background: var(--moderate-bg); border-color: var(--moderate); }
+  .stagesel.stage-offer { color: var(--strong); background: var(--strong-bg); border-color: var(--strong); }
+  .stagesel.stage-rejected { color: var(--weak); background: var(--weak-bg); border-color: var(--weak); }
+  .cand__toggle { background: transparent; border: 0; color: var(--evergreen-d); font-size: 12.5px; font-weight: 600; padding: 6px 0 0; }
+  .cand__detail { border-top: 1px solid var(--line); background: var(--surface-2); padding: 14px 18px 16px 80px; font-size: 13px; display: none; }
+  @media (max-width: 560px) { .cand__detail { padding: 14px 18px; } }
+  .cand__detail.open { display: block; }
+  .detailrow { display: flex; gap: 8px; margin-bottom: 6px; }
+  .detailrow .k { color: var(--faint); min-width: 84px; font-size: 12px; padding-top: 1px; }
+  .detailrow .v { color: var(--ink); }
+  .miniskills { display: flex; flex-wrap: wrap; gap: 5px; }
+  .miniskill { font-size: 11.5px; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 2px 7px; color: var(--muted); }
+  /* skill-match chips */
+  .miniskill.have { color: var(--strong); background: var(--strong-bg); border-color: var(--strong); }
+  .miniskill.have::before { content: "✓ "; font-weight: 700; }
+  .miniskill.miss { color: var(--weak); background: var(--weak-bg); border-color: var(--weak); }
+  .miniskill.miss::before { content: "✕ "; font-weight: 700; }
+  .cover { font-family: var(--mono); font-weight: 700; }
+  /* required-skills summary bar under the results header */
+  .reqbar { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin: -4px 2px 16px; font-size: 12px; color: var(--muted); }
+  .reqbar .lbl { letter-spacing: .09em; text-transform: uppercase; font-size: 10.5px; color: var(--faint); font-weight: 600; margin-right: 2px; }
+  .reqbar .req { font-size: 11.5px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 6px; padding: 2px 7px; color: var(--muted); }
+  /* results controls: weight slider, sort, filter, export */
+  .controls { display: flex; align-items: center; flex-wrap: wrap; gap: 12px 20px; margin: 0 2px 14px; padding: 12px 15px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow); }
+  .controls .grp { display: flex; align-items: center; gap: 8px; }
+  .controls label { font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--faint); font-weight: 600; }
+  .controls select { font: inherit; font-size: 12.5px; color: var(--ink); background: var(--surface-2); border: 1px solid var(--line-strong); border-radius: 8px; padding: 5px 9px; cursor: pointer; }
+  .controls .weight input[type=range] { width: 150px; accent-color: var(--evergreen); cursor: pointer; vertical-align: middle; }
+  .controls .weight .wv { font-size: 11.5px; color: var(--muted); white-space: nowrap; }
+  .controls .weight .wv b { font-family: var(--mono); color: var(--ink); font-weight: 700; }
+  .controls .spacer { margin-left: auto; }
+
+  /* ---------- sidebar nav ---------- */
+  .sidenav { margin-bottom: 22px; display: flex; flex-direction: column; gap: 5px; }
+  .navitem { width: 100%; text-align: left; background: transparent; border: 1px solid transparent; border-radius: 11px; padding: 8px 10px; font: inherit; font-size: 14px; font-weight: 600; color: var(--muted); cursor: pointer; display: flex; align-items: center; gap: 11px; transition: background .15s, color .15s, box-shadow .15s; }
+  .navitem .ni { flex: none; width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; background: var(--surface-2); border: 1px solid var(--line); color: var(--muted); transition: background .15s, color .15s, border-color .15s; }
+  .navitem:hover { background: var(--surface-2); color: var(--ink); }
+  .navitem:hover .ni { color: var(--ink); border-color: var(--line-strong); }
+  .navitem.active { background: var(--strong-bg); color: var(--evergreen-d); box-shadow: 0 1px 3px rgba(19,77,54,.08); }
+  .navitem.active .ni { background: var(--evergreen); border-color: var(--evergreen); color: #fff; }
+  .navitem.active::after { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--evergreen); margin-left: auto; }
+
+  /* ---------- dashboard ---------- */
+  .dash__head { margin: 4px 2px 20px; }
+  .dash__head h1 { font-family: var(--display); font-weight: 800; font-size: 27px; letter-spacing: -0.02em; margin: 0 0 5px; }
+  .dash__head p { color: var(--muted); font-size: 13.5px; margin: 0; }
+  .sysbadge { font-family: var(--mono); font-size: 11.5px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 6px; padding: 2px 7px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+  .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 22px; }
+  @media (max-width: 900px) { .kpis { grid-template-columns: repeat(2, 1fr); } }
+  .kpi { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 16px 18px; }
+  .kpi .n { font-family: var(--mono); font-weight: 700; font-size: 29px; line-height: 1; letter-spacing: -0.02em; color: var(--ink); }
+  .kpi .l { font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--faint); margin-top: 9px; font-weight: 600; }
+  .kpi .s { font-size: 12px; color: var(--muted); margin-top: 3px; }
+  .dash__grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 22px; }
+  @media (max-width: 760px) { .dash__grid { grid-template-columns: 1fr; } }
+  .panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 18px 20px; margin-bottom: 22px; }
+  .panel h3 { font-size: 14px; font-weight: 700; margin: 0 0 15px; letter-spacing: -0.01em; }
+  .panel.flush { margin-bottom: 0; }
+  .dash__grid .panel { margin-bottom: 0; }
+  /* fit distribution */
+  .distbar { height: 16px; border-radius: 8px; overflow: hidden; display: flex; background: var(--surface-2); border: 1px solid var(--line); }
+  .distbar span { height: 100%; }
+  .distbar span + span { box-shadow: -2px 0 0 var(--surface); }
+  .dist-s { background: var(--strong); } .dist-m { background: var(--moderate); } .dist-w { background: var(--weak); }
+  .distlegend { display: flex; gap: 18px; margin-top: 13px; flex-wrap: wrap; font-size: 12.5px; color: var(--muted); }
+  .distlegend .dot { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 6px; vertical-align: middle; }
+  .distlegend b { font-family: var(--mono); color: var(--ink); font-weight: 700; }
+  /* skill bars (magnitude, single hue) */
+  .skillbars { display: flex; flex-direction: column; gap: 9px; }
+  .skillbar { display: grid; grid-template-columns: 116px 1fr 26px; align-items: center; gap: 10px; font-size: 12.5px; }
+  .skillbar .nm { color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .skillbar .track { height: 9px; background: var(--surface-2); border-radius: 5px; overflow: hidden; }
+  .skillbar .fill { height: 100%; background: var(--evergreen); border-radius: 5px; transition: width .7s cubic-bezier(.2,.7,.2,1); }
+  .skillbar .ct { font-family: var(--mono); color: var(--muted); text-align: right; }
+  /* top candidates */
+  .toprow { display: grid; grid-template-columns: 22px 1fr auto auto; align-items: center; gap: 12px; padding: 11px 4px; border-top: 1px solid var(--line); cursor: pointer; border-radius: 8px; }
+  .toprow:first-child { border-top: 0; }
+  .toprow:hover { background: var(--surface-2); }
+  .toprow .rk { font-family: var(--mono); color: var(--faint); font-size: 13px; text-align: center; }
+  .toprow .nm { font-weight: 600; font-size: 14px; }
+  .toprow .jt { font-size: 12px; color: var(--faint); }
+  .toprow .cov { font-size: 12px; color: var(--faint); font-family: var(--mono); }
+  .toprow .sc { font-family: var(--mono); font-weight: 700; font-size: 15px; min-width: 42px; text-align: right; }
+  /* job summary cards */
+  .jobcards { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 14px; }
+  .jobcard { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 16px 18px; cursor: pointer; transition: border-color .15s, transform .1s; }
+  .jobcard:hover { border-color: var(--evergreen); transform: translateY(-1px); }
+  .jobcard h4 { font-size: 14.5px; font-weight: 700; margin: 0 0 11px; letter-spacing: -0.01em; }
+  .jobcard .row { display: flex; justify-content: space-between; font-size: 12.5px; color: var(--muted); padding: 3px 0; }
+  .jobcard .row b { font-family: var(--mono); color: var(--ink); font-weight: 700; }
+  .sectlabel { font-size: 12px; letter-spacing: .09em; text-transform: uppercase; color: var(--faint); font-weight: 600; margin: 0 2px 12px; }
+
+  /* ---------- talent pool ---------- */
+  .poolsearch { position: relative; margin-bottom: 8px; }
+  .poolsearch input { width: 100%; padding: 12px 14px 12px 40px; font: inherit; font-size: 14.5px; color: var(--ink); background: var(--surface); border: 1.5px solid var(--line-strong); border-radius: 11px; }
+  .poolsearch input:focus { outline: none; border-color: var(--evergreen); box-shadow: 0 0 0 3px rgba(28,107,74,.13); }
+  .poolsearch svg { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--faint); }
+  .poolcount { font-size: 12.5px; color: var(--faint); margin: 0 2px 14px; }
+  .poolrow { display: grid; grid-template-columns: 1fr auto; gap: 8px 16px; align-items: center; padding: 14px 6px; border-top: 1px solid var(--line); cursor: pointer; border-radius: 9px; }
+  .poolrow:first-of-type { border-top: 0; }
+  .poolrow:hover { background: var(--surface-2); }
+  .poolrow .nm { font-weight: 600; font-size: 15px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .poolrow .jt { font-size: 12.5px; color: var(--faint); margin-top: 3px; font-family: var(--mono); }
+  .poolrow .sk { margin-top: 8px; display: flex; gap: 5px; flex-wrap: wrap; }
+  .poolrow .r { text-align: right; }
+  .poolrow .sc { font-family: var(--mono); font-weight: 700; font-size: 20px; letter-spacing: -0.02em; }
+  .poolrow .cov { font-size: 11.5px; color: var(--faint); font-family: var(--mono); margin-top: 2px; }
+
+  /* empty + loading states */
+  .empty { text-align: center; padding: 46px 20px; }
+  .empty svg { color: var(--line-strong); margin-bottom: 12px; }
+  .empty h3 { font-size: 16px; margin: 0 0 5px; }
+  .empty p { color: var(--muted); font-size: 13.5px; margin: 0 auto 16px; max-width: 40ch; }
+
+  .spinner { width: 16px; height: 16px; border: 2.5px solid rgba(255,255,255,.4); border-top-color: #fff; border-radius: 50%; animation: spin .7s linear infinite; }
+  .spinner.dark { border-color: var(--line-strong); border-top-color: var(--evergreen); }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loadrow { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: 13.5px; padding: 20px; justify-content: center; }
+
+  /* modal */
+  .modal { position: fixed; inset: 0; background: rgba(15,30,22,.44); display: none; align-items: center; justify-content: center; padding: 20px; z-index: 40; }
+  .modal.show { display: flex; }
+  .modal__box { background: var(--surface); border-radius: 16px; box-shadow: var(--shadow-lg); width: 100%; max-width: 500px; padding: 24px; }
+  .modal__box h3 { font-family: var(--display); font-weight: 700; font-size: 20px; margin: 0 0 4px; letter-spacing: -0.02em; }
+  .modal__box .lede { color: var(--muted); font-size: 13.5px; margin: 0 0 18px; }
+  .field textarea {
+    width: 100%; padding: 11px 13px; font-size: 14px; font-family: var(--body); color: var(--ink);
+    background: var(--surface); border: 1.5px solid var(--line-strong); border-radius: 10px; resize: vertical; min-height: 130px; line-height: 1.55;
+  }
+  .field textarea:focus { outline: none; border-color: var(--evergreen); box-shadow: 0 0 0 3px rgba(28,107,74,.13); }
+  .modal__actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 18px; }
+
+  /* toast */
+  .toast { position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--ink); color: #fff; padding: 11px 18px; border-radius: 11px; font-size: 13.5px; box-shadow: var(--shadow-lg); opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; z-index: 60; }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .toast.err { background: #7d2e1a; }
+
+  @media (max-width: 760px) { .auth { grid-template-columns: 1fr; } .auth__brand { display: none; } }
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+</head>
+<body>
+
+<!-- ===================== AUTH ===================== -->
+<section id="authView" class="auth">
+  <div class="auth__brand">
+    <div class="mark">
+      <svg width="30" height="30" viewBox="0 0 30 30" fill="none">
+        <rect x="4" y="6"  width="22" height="4.4" rx="2.2" fill="#8FE3BE"/>
+        <rect x="4" y="13" width="16" height="4.4" rx="2.2" fill="#4FBF8B"/>
+        <rect x="4" y="20" width="9"  height="4.4" rx="2.2" fill="#2C9C6A"/>
+      </svg>
+      <span class="word">Sift</span>
+    </div>
+    <div>
+      <h2 class="brand__thesis">Rank every applicant against the role.</h2>
+      <p class="brand__sub">Parse resumes, extract structured profiles, and score candidates on real fit — similarity plus model judgement — in one pass.</p>
+      <div class="brand__viz" aria-hidden="true">
+        <div class="brand__bar"><span style="width:86%; animation-delay:.05s"></span></div>
+        <div class="brand__bar"><span style="width:61%; animation-delay:.15s"></span></div>
+        <div class="brand__bar"><span style="width:34%; animation-delay:.25s"></span></div>
+      </div>
+    </div>
+    <p class="brand__foot">PDF · DOCX · TXT → ranked shortlist</p>
+  </div>
+
+  <div class="auth__panel">
+    <div class="authcard">
+      <div class="tabs" role="tablist">
+        <button id="tabLogin" class="active" role="tab">Sign in</button>
+        <button id="tabRegister" role="tab">Create account</button>
+      </div>
+      <h1 id="authTitle">Welcome back</h1>
+      <p class="lede" id="authLede">Sign in to screen resumes and rank candidates.</p>
+
+      <div class="field">
+        <label for="email">Email</label>
+        <input id="email" type="email" autocomplete="username" placeholder="you@company.com" />
+      </div>
+      <div class="field">
+        <label for="password">Password</label>
+        <input id="password" type="password" autocomplete="current-password" placeholder="••••••••" />
+      </div>
+      <div class="field hidden" id="roleField">
+        <label>Role</label>
+        <div class="roletoggle">
+          <button type="button" data-role="recruiter" class="active">Recruiter</button>
+          <button type="button" data-role="admin">Admin</button>
+        </div>
+      </div>
+
+      <button id="authSubmit" class="btn btn--block">Sign in</button>
+      <div id="authMsg" class="formmsg"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== APP ===================== -->
+<div class="layout hidden" id="appView">
+  <aside class="sidebar">
+    <div class="sidebar__brand">
+      <div class="mark">
+        <svg width="26" height="26" viewBox="0 0 30 30" fill="none">
+          <rect x="4" y="6"  width="22" height="4.4" rx="2.2" fill="#1C6B4A"/>
+          <rect x="4" y="13" width="16" height="4.4" rx="2.2" fill="#2C9C6A"/>
+          <rect x="4" y="20" width="9"  height="4.4" rx="2.2" fill="#6FB3A6"/>
+        </svg>
+        <span class="word">Sift<span class="dot">.</span></span>
+      </div>
+    </div>
+
+    <div class="sidebar__scroll">
+      <nav class="sidenav">
+        <button class="navitem" id="navOverview">
+          <span class="ni"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span>
+          <span class="nl">Overview</span>
+        </button>
+        <button class="navitem" id="navPool">
+          <span class="ni"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+          <span class="nl">All candidates</span>
+        </button>
+      </nav>
+      <div class="sidebar__head">
+        <span class="lbl">Jobs <span class="count" id="jobCount">0</span></span>
+        <button class="btn btn--sm" id="newJobBtn">New job</button>
+      </div>
+      <div class="joblist" id="jobList"></div>
+    </div>
+
+    <div class="sidebar__user">
+      <span class="avatar" id="avatar">?</span>
+      <div class="uinfo">
+        <span class="uname" id="whoEmail"></span>
+        <span class="urole" id="whoRole">Recruiter</span>
+      </div>
+      <button class="iconbtn" id="logoutBtn" title="Sign out" aria-label="Sign out">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      </button>
+    </div>
+  </aside>
+
+  <main class="content" id="content">
+    <!-- filled by JS -->
+  </main>
+</div>
+
+<!-- new job modal -->
+<div class="modal" id="jobModal">
+  <div class="modal__box">
+    <h3>New job</h3>
+    <p class="lede">Paste the job description — Sift extracts the required skills automatically.</p>
+    <div class="field">
+      <label for="jobTitle">Job title</label>
+      <input id="jobTitle" type="text" placeholder="Senior Backend Engineer" />
+    </div>
+    <div class="field">
+      <label for="jobDesc">Description</label>
+      <textarea id="jobDesc" placeholder="Describe the role, responsibilities, and required skills…"></textarea>
+    </div>
+    <div id="jobModalMsg" class="formmsg"></div>
+    <div class="modal__actions">
+      <button class="btn btn--ghost" id="jobCancel">Cancel</button>
+      <button class="btn" id="jobCreate">Create job</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function () {
+  "use strict";
+  const $ = (s, r) => (r || document).querySelector(s);
+  const el = (tag, cls, html) => { const n = document.createElement(tag); if (cls) n.className = cls; if (html != null) n.innerHTML = html; return n; };
+  const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+
+  const store = {
+    get token() { try { return localStorage.getItem("sift_token"); } catch { return this._t || null; } },
+    set token(v) { try { v ? localStorage.setItem("sift_token", v) : localStorage.removeItem("sift_token"); } catch { this._t = v; } },
+  };
+
+  let state = {
+    user: null, jobs: [], selected: null, files: [], view: "dashboard",
+    ranked: [], gap: null,
+    weights: { sim: 0.4, llm: 0.6 }, sortBy: "fit", filterBand: "all",
+  };
+
+  // ---------- API ----------
+  async function api(path, opts) {
+    opts = opts || {};
+    const headers = {};
+    let body;
+    if (opts.json !== undefined) { headers["Content-Type"] = "application/json"; body = JSON.stringify(opts.json); }
+    if (opts.form) body = opts.form;
+    if (opts.auth !== false && store.token) headers["Authorization"] = "Bearer " + store.token;
+    const res = await fetch(path, { method: opts.method || "GET", headers, body });
+    const text = await res.text();
+    let data = null; try { data = text ? JSON.parse(text) : null; } catch { data = text; }
+    if (res.status === 401 && opts.auth !== false) { store.token = null; showAuth(); throw { status: 401, data }; }
+    if (!res.ok) throw { status: res.status, data };
+    return data;
+  }
+  const detail = (e) => (e && e.data && (e.data.detail || e.data.message)) || "Something went wrong. Please try again.";
+
+  function toast(msg, isErr) {
+    const t = $("#toast"); t.textContent = msg; t.className = "toast show" + (isErr ? " err" : "");
+    clearTimeout(toast._t); toast._t = setTimeout(() => { t.className = "toast"; }, 2600);
+  }
+
+  // ---------- AUTH view ----------
+  let mode = "login", role = "recruiter";
+  function syncAuthMode() {
+    const login = mode === "login";
+    $("#tabLogin").classList.toggle("active", login);
+    $("#tabRegister").classList.toggle("active", !login);
+    $("#authTitle").textContent = login ? "Welcome back" : "Create your account";
+    $("#authLede").textContent = login ? "Sign in to screen resumes and rank candidates." : "Start screening resumes in under a minute.";
+    $("#authSubmit").textContent = login ? "Sign in" : "Create account";
+    $("#roleField").classList.toggle("hidden", login);
+    $("#password").setAttribute("autocomplete", login ? "current-password" : "new-password");
+    authMsg("");
+  }
+  function authMsg(msg, kind) {
+    const m = $("#authMsg");
+    m.textContent = msg || "";
+    m.className = "formmsg" + (msg ? " show " + (kind || "err") : "");
+  }
+  $("#tabLogin").onclick = () => { mode = "login"; syncAuthMode(); };
+  $("#tabRegister").onclick = () => { mode = "register"; syncAuthMode(); };
+  document.querySelectorAll(".roletoggle button").forEach(b => {
+    b.onclick = () => { role = b.dataset.role; document.querySelectorAll(".roletoggle button").forEach(x => x.classList.remove("active")); b.classList.add("active"); };
+  });
+
+  $("#authSubmit").onclick = doAuth;
+  $("#password").addEventListener("keydown", e => { if (e.key === "Enter") doAuth(); });
+  $("#email").addEventListener("keydown", e => { if (e.key === "Enter") $("#password").focus(); });
+
+  async function doAuth() {
+    const email = $("#email").value.trim();
+    const password = $("#password").value;
+    if (!email || !password) { authMsg("Enter your email and password."); return; }
+    const btn = $("#authSubmit"); btn.disabled = true; const label = btn.textContent; btn.innerHTML = '<span class="spinner"></span>';
+    try {
+      if (mode === "register") {
+        try { await api("/v1/auth/register", { method: "POST", auth: false, json: { email, password, role } }); }
+        catch (e) {
+          if (e.status === 400) { authMsg("That email is already registered — try signing in instead."); return; }
+          if (e.status === 422) { authMsg("Password must be at least 6 characters."); return; }
+          throw e;
+        }
+      }
+      const form = new URLSearchParams({ username: email, password });
+      const tok = await api("/v1/auth/login", { method: "POST", auth: false, form });
+      store.token = tok.access_token;
+      await boot();
+    } catch (e) {
+      if (e.status === 401) authMsg("Email or password doesn't match. Try again.");
+      else authMsg(detail(e));
+    } finally { btn.disabled = false; btn.textContent = label; }
+  }
+
+  function showAuth() {
+    $("#authView").classList.remove("hidden");
+    $("#appView").classList.add("hidden");
+    $("#password").value = "";
+  }
+  function showApp() {
+    $("#authView").classList.add("hidden");
+    $("#appView").classList.remove("hidden");
+  }
+
+  // ---------- JOBS ----------
+  $("#logoutBtn").onclick = () => { store.token = null; state = { user: null, jobs: [], selected: null, files: [], view: "dashboard", ranked: [], gap: null, weights: { sim: 0.4, llm: 0.6 }, sortBy: "fit", filterBand: "all" }; showAuth(); };
+  $("#navOverview").onclick = showDashboard;
+  $("#navPool").onclick = showPool;
+  $("#newJobBtn").onclick = openJobModal;
+  $("#jobCancel").onclick = closeJobModal;
+  $("#jobModal").addEventListener("click", e => { if (e.target === $("#jobModal")) closeJobModal(); });
+  $("#jobCreate").onclick = createJob;
+
+  function openJobModal() { $("#jobTitle").value = ""; $("#jobDesc").value = ""; $("#jobModalMsg").className = "formmsg"; $("#jobModal").classList.add("show"); setTimeout(() => $("#jobTitle").focus(), 50); }
+  function closeJobModal() { $("#jobModal").classList.remove("show"); }
+
+  async function createJob() {
+    const title = $("#jobTitle").value.trim();
+    const description = $("#jobDesc").value.trim();
+    const m = $("#jobModalMsg");
+    if (!title || !description) { m.className = "formmsg show err"; m.textContent = "Add a title and a description."; return; }
+    const btn = $("#jobCreate"); btn.disabled = true; const label = btn.textContent; btn.innerHTML = '<span class="spinner"></span>';
+    try {
+      const job = await api("/v1/jobs", { method: "POST", json: { title, description } });
+      closeJobModal();
+      await loadJobs();
+      selectJob(job.id);
+      toast("Job created — " + (job.required_skills || []).length + " skills detected.");
+    } catch (e) { m.className = "formmsg show err"; m.textContent = detail(e); }
+    finally { btn.disabled = false; btn.textContent = label; }
+  }
+
+  async function loadJobs() {
+    state.jobs = await api("/v1/jobs");
+    renderJobList();
+  }
+  function renderJobList() {
+    const list = $("#jobList"); list.innerHTML = "";
+    const countEl = $("#jobCount"); if (countEl) countEl.textContent = state.jobs.length;
+    if (!state.jobs.length) {
+      list.appendChild(el("p", null, "No jobs yet.")).style.cssText = "color:var(--faint);font-size:13px;padding:4px 2px;";
+      return;
+    }
+    state.jobs.forEach(j => {
+      const active = state.view === "job" && j.id === state.selected;
+      const item = el("button", "jobitem" + (active ? " active" : ""));
+      const initial = ((j.title || "?").trim().charAt(0) || "?").toUpperCase();
+      const n = (j.required_skills || []).length;
+      item.innerHTML =
+        '<span class="jobitem__badge">' + esc(initial) + '</span>' +
+        '<span class="jobitem__body">' +
+          '<span class="t">' + esc(j.title) + '</span>' +
+          '<span class="m">' + n + ' skill' + (n !== 1 ? 's' : '') + '</span>' +
+        '</span>';
+      item.onclick = () => selectJob(j.id);
+      list.appendChild(item);
+    });
+  }
+
+  function setActiveNav() {
+    $("#navOverview").classList.toggle("active", state.view === "dashboard");
+    $("#navPool").classList.toggle("active", state.view === "pool");
+  }
+
+  function showPool() {
+    state.view = "pool"; state.selected = null;
+    setActiveNav();
+    renderJobList();
+    renderPool();
+  }
+
+  function selectJob(id) {
+    state.view = "job"; state.selected = id; state.files = [];
+    setActiveNav();
+    renderJobList();
+    renderJob();
+  }
+
+  function showDashboard() {
+    state.view = "dashboard"; state.selected = null;
+    setActiveNav();
+    renderJobList();
+    renderDashboard();
+  }
+
+  // ---------- CONTENT ----------
+  function currentJob() { return state.jobs.find(j => j.id === state.selected); }
+
+  // ---------- DASHBOARD ----------
+  async function renderDashboard() {
+    const c = $("#content");
+    c.innerHTML = '<div class="loadrow"><span class="spinner dark"></span> Loading overview…</div>';
+    let d;
+    try { d = await api("/v1/dashboard"); }
+    catch (e) { c.innerHTML = ""; toast(detail(e), true); return; }
+
+    if (!d.total_jobs) {
+      c.innerHTML = "";
+      const e = el("div", "empty");
+      e.innerHTML = icon("stack") + "<h3>Nothing to screen yet</h3><p>Create your first job and Sift will extract its required skills, then rank every resume you upload against it.</p>";
+      const b = el("button", "btn", "New job"); b.onclick = openJobModal; e.appendChild(b);
+      c.appendChild(e); return;
+    }
+
+    const fd = d.fit_distribution;
+    const distTot = fd.strong + fd.moderate + fd.weak;
+    const pct = n => distTot ? (n / distTot * 100).toFixed(1) + "%" : "0%";
+    const maxSkill = d.top_skills.length ? d.top_skills[0].count : 1;
+
+    const kpi = (n, label, sub) =>
+      '<div class="kpi"><div class="n">' + n + '</div><div class="l">' + label + '</div>' +
+      (sub ? '<div class="s">' + sub + '</div>' : "") + '</div>';
+
+    const distBar =
+      '<div class="distbar">' +
+        (fd.strong ? '<span class="dist-s" style="width:' + pct(fd.strong) + '"></span>' : "") +
+        (fd.moderate ? '<span class="dist-m" style="width:' + pct(fd.moderate) + '"></span>' : "") +
+        (fd.weak ? '<span class="dist-w" style="width:' + pct(fd.weak) + '"></span>' : "") +
+      '</div>' +
+      '<div class="distlegend">' +
+        '<span><span class="dot dist-s"></span>Strong fit · <b>' + fd.strong + '</b></span>' +
+        '<span><span class="dot dist-m"></span>Moderate · <b>' + fd.moderate + '</b></span>' +
+        '<span><span class="dot dist-w"></span>Weak · <b>' + fd.weak + '</b></span>' +
+      '</div>';
+
+    const skillBars = d.top_skills.length
+      ? '<div class="skillbars">' + d.top_skills.map(s =>
+          '<div class="skillbar"><span class="nm">' + esc(s.skill) + '</span>' +
+          '<div class="track"><div class="fill" style="width:0" data-w="' + (s.count / maxSkill * 100).toFixed(0) + '%"></div></div>' +
+          '<span class="ct">' + s.count + '</span></div>').join("") + '</div>'
+      : '<p style="color:var(--faint);font-size:13px;margin:0">No candidate skills yet.</p>';
+
+    const topRows = d.top_candidates.length
+      ? d.top_candidates.map((t, i) =>
+          '<div class="toprow" data-jobid="' + t.job_id + '">' +
+            '<span class="rk">' + (i + 1) + '</span>' +
+            '<div><div class="nm">' + esc(t.full_name) + '</div><div class="jt">' + esc(t.job_title) + '</div></div>' +
+            '<span class="cov">' + (t.coverage != null ? Math.round(t.coverage * 100) + "% skills" : "") + '</span>' +
+            '<span class="sc" style="color:var(--' + band(t.final_score) + ')">' + t.final_score.toFixed(1) + '</span>' +
+          '</div>').join("")
+      : '<p style="color:var(--faint);font-size:13px;margin:0">Upload resumes to see a shortlist.</p>';
+
+    const jobCards = d.jobs.map(j =>
+      '<div class="jobcard" data-jobid="' + j.id + '">' +
+        '<h4>' + esc(j.title) + '</h4>' +
+        '<div class="row"><span>Candidates</span><b>' + j.candidate_count + '</b></div>' +
+        '<div class="row"><span>Avg fit</span><b>' + j.avg_score.toFixed(1) + '</b></div>' +
+        '<div class="row"><span>Strong fits</span><b>' + j.strong_count + '</b></div>' +
+      '</div>').join("");
+
+    c.innerHTML =
+      '<div class="dash__head"><h1>Overview</h1>' +
+        '<p>Screening activity across all your jobs · <span class="sysbadge">' + esc(d.llm_provider) + ' LLM · ' + esc(d.database) + '</span></p></div>' +
+      '<div class="kpis">' +
+        kpi(d.total_jobs, "Active jobs", "") +
+        kpi(d.total_candidates, "Candidates screened", d.scored_candidates + " scored") +
+        kpi(d.avg_fit_score.toFixed(1), "Average fit", "out of 100") +
+        kpi(fd.strong, "Strong fits", "of " + d.scored_candidates + " scored") +
+      '</div>' +
+      '<div class="dash__grid">' +
+        '<div class="panel"><h3>Fit distribution</h3>' + distBar + '</div>' +
+        '<div class="panel"><h3>Top skills in talent pool</h3>' + skillBars + '</div>' +
+      '</div>' +
+      '<div class="panel"><h3>Top candidates</h3>' + topRows + '</div>' +
+      '<div class="sectlabel">Jobs</div>' +
+      '<div class="jobcards">' + jobCards + '</div>';
+
+    // wire click-through to jobs
+    c.querySelectorAll("[data-jobid]").forEach(n => { n.onclick = () => selectJob(n.dataset.jobid); });
+    // animate skill bars
+    requestAnimationFrame(() => c.querySelectorAll(".skillbar .fill").forEach(f => { f.style.width = f.dataset.w; }));
+  }
+
+  // ---------- TALENT POOL ----------
+  let poolTimer = null;
+  function renderPool() {
+    const c = $("#content");
+    c.innerHTML =
+      '<div class="dash__head"><h1>All candidates</h1>' +
+        '<p>Search every candidate across all your jobs by name, email, or skill.</p></div>' +
+      '<div class="poolsearch">' +
+        '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>' +
+        '<input id="poolSearch" type="text" placeholder="Search by name, email, or skill — e.g. Kubernetes" autocomplete="off">' +
+      '</div>' +
+      '<div class="poolcount" id="poolCount"></div>' +
+      '<div class="panel flush" id="poolList"></div>';
+    const input = $("#poolSearch");
+    input.oninput = () => { clearTimeout(poolTimer); poolTimer = setTimeout(() => loadPool(input.value), 220); };
+    loadPool("");
+  }
+
+  async function loadPool(search) {
+    const list = $("#poolList"); if (!list) return;
+    list.innerHTML = '<div class="loadrow"><span class="spinner dark"></span> Searching…</div>';
+    try {
+      const rows = await api("/v1/candidates" + (search ? "?search=" + encodeURIComponent(search) : ""));
+      renderPoolList(rows, search);
+    } catch (e) { list.innerHTML = ""; toast(detail(e), true); }
+  }
+
+  function renderPoolList(rows, search) {
+    const list = $("#poolList");
+    const count = $("#poolCount");
+    if (count) count.textContent = rows.length + " candidate" + (rows.length !== 1 ? "s" : "") + (search ? ' matching “' + search + '”' : "");
+
+    if (!rows.length) {
+      list.innerHTML = '<p style="color:var(--faint);font-size:13.5px;margin:0;padding:8px 2px">' +
+        (search ? "No candidates match that search." : "No candidates yet — upload resumes to a job to build your talent pool.") + '</p>';
+      return;
+    }
+
+    list.innerHTML = rows.map(r => {
+      const b = band(+r.final_score || 0);
+      const skills = (r.skills || []).slice(0, 8);
+      const more = (r.skills || []).length - skills.length;
+      return '<div class="poolrow" data-jobid="' + r.job_id + '">' +
+        '<div>' +
+          '<div class="nm">' + esc(r.full_name || "Unknown") + '<span class="fit ' + b + '">' + bandLabel(b) + '</span></div>' +
+          '<div class="jt">' + esc(r.job_title || "—") + ' · ' + (r.experience_years != null ? r.experience_years + " yrs" : "—") + (r.email ? " · " + esc(r.email) : "") + '</div>' +
+          '<div class="sk">' + skills.map(s => '<span class="miniskill">' + esc(s) + '</span>').join("") +
+            (more > 0 ? '<span class="miniskill">+' + more + '</span>' : "") + '</div>' +
+        '</div>' +
+        '<div class="r">' +
+          '<div class="sc" style="color:var(--' + b + ')">' + (+r.final_score || 0).toFixed(1) + '</div>' +
+          (r.coverage != null ? '<div class="cov">' + Math.round(r.coverage * 100) + '% skills</div>' : "") +
+          '<div style="margin-top:8px">' + stageSelectHTML(r.candidate_id, r.status) + '</div>' +
+        '</div>' +
+      '</div>';
+    }).join("");
+
+    list.querySelectorAll("[data-jobid]").forEach(n => { n.onclick = () => selectJob(n.dataset.jobid); });
+    wireStages(list);
+  }
+
+  function renderJob() {
+    const c = $("#content");
+    const job = currentJob();
+    if (!job) {
+      c.innerHTML = "";
+      const e = el("div", "empty");
+      e.innerHTML = icon("stack") + "<h3>Pick a job to begin</h3><p>Create a job and Sift will extract its required skills, then rank every resume you upload against it.</p>";
+      const b = el("button", "btn", "New job"); b.onclick = openJobModal; e.appendChild(b);
+      c.appendChild(e); return;
+    }
+
+    c.innerHTML = "";
+    const head = el("div", "jobhead");
+    head.innerHTML = "<h1>" + esc(job.title) + "</h1>";
+    const chips = el("div", "chips");
+    (job.required_skills || []).forEach(s => chips.appendChild(el("span", "chip req", esc(s))));
+    if (!(job.required_skills || []).length) chips.appendChild(el("span", null, "No skills detected").cloneNode(true));
+    head.appendChild(chips);
+    c.appendChild(head);
+
+    // upload card
+    const up = el("div", "card");
+    up.innerHTML =
+      '<div class="card__title"><h3>Screen resumes</h3><span class="hint">PDF · DOCX · TXT · up to 10 files</span></div>' +
+      '<div class="drop" id="drop">' +
+        icon("upload") +
+        '<p>Drag resumes here, or <span class="pick" id="pick">browse files</span></p>' +
+        '<div class="sub">They\'re parsed, structured, and scored against this job.</div>' +
+        '<input type="file" id="fileInput" multiple accept=".pdf,.docx,.txt" style="display:none" />' +
+      '</div>' +
+      '<ul class="filelist" id="fileList"></ul>' +
+      '<div class="uploadbar" id="uploadBar"></div>';
+    c.appendChild(up);
+    wireUpload();
+
+    // results container
+    const res = el("div"); res.id = "results"; c.appendChild(res);
+    loadRanked();
+  }
+
+  function wireUpload() {
+    const drop = $("#drop"), input = $("#fileInput");
+    $("#pick").onclick = () => input.click();
+    drop.onclick = (e) => { if (e.target.id === "drop" || e.target.tagName === "P" || e.target.classList.contains("sub")) input.click(); };
+    input.onchange = () => addFiles(input.files);
+    ["dragover", "dragenter"].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add("drag"); }));
+    ["dragleave", "drop"].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove("drag"); }));
+    drop.addEventListener("drop", e => { if (e.dataTransfer && e.dataTransfer.files) addFiles(e.dataTransfer.files); });
+    renderFiles();
+  }
+  function addFiles(fileList) {
+    const ok = /\.(pdf|docx|txt)$/i;
+    for (const f of fileList) if (ok.test(f.name)) state.files.push(f);
+    renderFiles();
+  }
+  function renderFiles() {
+    const ul = $("#fileList"); if (!ul) return; ul.innerHTML = "";
+    state.files.forEach((f, i) => {
+      const li = el("li");
+      li.innerHTML = '<span class="dotmark"></span>' + esc(f.name) + ' <span style="color:var(--faint);font-size:12px">' + (f.size/1024).toFixed(0) + ' KB</span>';
+      const rm = el("button", null, "×"); rm.style.cssText = "margin-left:auto;border:0;background:none;color:var(--faint);font-size:16px;cursor:pointer;line-height:1";
+      rm.onclick = () => { state.files.splice(i, 1); renderFiles(); };
+      li.appendChild(rm); ul.appendChild(li);
+    });
+    const bar = $("#uploadBar"); bar.innerHTML = "";
+    if (state.files.length) {
+      const b = el("button", "btn", "Screen " + state.files.length + " resume" + (state.files.length > 1 ? "s" : ""));
+      b.onclick = runUpload; bar.appendChild(b);
+    }
+  }
+
+  async function runUpload() {
+    const job = currentJob(); if (!job || !state.files.length) return;
+    const bar = $("#uploadBar");
+    bar.innerHTML = '<span class="loadrow"><span class="spinner dark"></span> Screening ' + state.files.length + ' resume' + (state.files.length>1?'s':'') + '…</span>';
+    const fd = new FormData();
+    state.files.forEach(f => fd.append("files", f));
+    try {
+      const out = await api("/v1/jobs/" + job.id + "/resumes/upload", { method: "POST", form: fd });
+      const n = (out.created || []).length, errs = (out.errors || []);
+      state.files = [];
+      toast(n + " candidate" + (n !== 1 ? "s" : "") + " added" + (errs.length ? ", " + errs.length + " skipped" : "") + ".");
+      renderFiles();
+      await loadRanked();
+    } catch (e) {
+      renderFiles();
+      if (e.status === 422) toast("None of those files could be read. Use PDF, DOCX, or TXT.", true);
+      else toast(detail(e), true);
+    }
+  }
+
+  // ---------- pipeline stages ----------
+  const STAGES = [
+    { v: "new", t: "New" }, { v: "screened", t: "Screened" },
+    { v: "interview", t: "Interview" }, { v: "offer", t: "Offer" },
+    { v: "rejected", t: "Rejected" },
+  ];
+  function stageSelectHTML(id, status) {
+    const cur = status || "new";
+    return '<select class="stagesel stage-' + cur + '" data-cid="' + id + '">' +
+      STAGES.map(s => '<option value="' + s.v + '"' + (s.v === cur ? " selected" : "") + '>' + s.t + '</option>').join("") +
+      '</select>';
+  }
+  function wireStages(root) {
+    root.querySelectorAll(".stagesel").forEach(sel => {
+      sel.onclick = e => e.stopPropagation();   // don't trigger row click-through
+      sel.onchange = async (e) => {
+        e.stopPropagation();
+        const cid = sel.dataset.cid, val = sel.value;
+        sel.disabled = true;
+        try {
+          const updated = await api("/v1/candidates/" + cid + "/status", { method: "PATCH", json: { status: val } });
+          sel.className = "stagesel stage-" + updated.status;
+          const rc = (state.ranked || []).find(r => (r.candidate || {}).id === cid);
+          if (rc) rc.candidate.status = updated.status;
+          toast(updated.full_name + " → " + val);
+        } catch (err) { toast(detail(err), true); }
+        finally { sel.disabled = false; }
+      };
+    });
+  }
+
+  // ---------- RANKED LEADERBOARD ----------
+  function band(final) { return final >= 65 ? "strong" : final >= 45 ? "moderate" : "weak"; }
+  function bandLabel(b) { return b === "strong" ? "Strong fit" : b === "moderate" ? "Moderate fit" : "Weak fit"; }
+  const fmtW = (x) => (Math.round(x * 100) / 100).toString();
+
+  // Final fit re-computed from the current weights, so the slider re-ranks
+  // instantly without another round-trip. Raw similarity/LLM scores come from
+  // the server; only their blend is done here.
+  function computeFinal(rc) {
+    const sim = +(rc.score && rc.score.similarity_score) || 0;  // 0..1
+    const llm = +(rc.score && rc.score.llm_score) || 0;         // 0..100
+    const f = state.weights.sim * sim * 100 + state.weights.llm * llm;
+    return Math.max(0, Math.min(100, f));
+  }
+  function sortVal(r) {
+    if (state.sortBy === "coverage") return r.gap ? r.gap.coverage : -1;
+    if (state.sortBy === "experience") return +((r.rc.candidate || {}).experience_years) || 0;
+    return r.final;
+  }
+
+  async function loadRanked(rescore) {
+    const box = $("#results"); if (!box) return;
+    box.innerHTML = '<div class="loadrow"><span class="spinner dark"></span> Scoring candidates…</div>';
+    try {
+      const [ranked, gap] = await Promise.all([
+        api("/v1/jobs/" + state.selected + "/ranked-candidates" + (rescore ? "?rescore=true" : "")),
+        api("/v1/jobs/" + state.selected + "/skill-gap").catch(() => null),
+      ]);
+      state.ranked = ranked; state.gap = gap;
+      renderResults(true);
+    } catch (e) { box.innerHTML = ""; toast(detail(e), true); }
+  }
+
+  function renderResults(animate) {
+    const box = $("#results"); box.innerHTML = "";
+    const ranked = state.ranked || [];
+
+    const header = el("div", "card__title");
+    header.style.cssText = "margin: 4px 2px 14px;";
+    header.innerHTML = "<h3>Ranked candidates" + (ranked.length ? " · " + ranked.length : "") + "</h3>";
+    if (ranked.length) {
+      const rb = el("button", "btn btn--ghost btn--sm", "Re-score");
+      rb.onclick = async () => { rb.disabled = true; rb.innerHTML = '<span class="spinner dark"></span>'; try { await loadRanked(true); toast("Scores refreshed."); } catch (e) { toast(detail(e), true); } };
+      header.appendChild(rb);
+    }
+    box.appendChild(header);
+
+    if (!ranked.length) {
+      const e = el("div", "empty");
+      e.innerHTML = icon("people") + "<h3>No candidates yet</h3><p>Upload resumes above and Sift will rank them against this job by skill fit and model judgement.</p>";
+      box.appendChild(e); return;
+    }
+
+    box.appendChild(buildControls());
+
+    const required = (state.gap && state.gap.required_skills) || [];
+    if (required.length) {
+      const rq = el("div", "reqbar");
+      rq.innerHTML = '<span class="lbl">Required skills</span>' +
+        required.map(s => '<span class="req">' + esc(s) + '</span>').join("");
+      box.appendChild(rq);
+    }
+
+    const wrap = el("div"); wrap.id = "rankList";
+    box.appendChild(wrap);
+    renderList(animate);
+  }
+
+  // Only the card list re-renders on control changes, so the slider keeps focus.
+  function renderList(animate) {
+    const wrap = $("#rankList"); if (!wrap) return;
+    const gapMap = {};
+    (state.gap && state.gap.candidates || []).forEach(g => { gapMap[g.candidate_id] = g; });
+    const required = (state.gap && state.gap.required_skills) || [];
+
+    let rows = (state.ranked || []).map(rc => ({ rc, final: computeFinal(rc), gap: gapMap[(rc.candidate || {}).id] }));
+    if (state.filterBand !== "all") rows = rows.filter(r => band(r.final) === state.filterBand);
+    rows.sort((a, b) => sortVal(b) - sortVal(a));
+
+    wrap.innerHTML = "";
+    if (!rows.length) { wrap.appendChild(el("div", "loadrow", "No candidates match this filter.")); return; }
+
+    const list = el("div", "rank");
+    rows.forEach((r, i) => list.appendChild(candidateCard(r.rc, i, { final: r.final, gap: r.gap, required: required, animate: animate })));
+    wrap.appendChild(list);
+    if (animate) requestAnimationFrame(() => wrap.querySelectorAll(".meter__seg").forEach(s => { s.style.width = s.dataset.w; }));
+  }
+
+  function buildControls() {
+    const bar = el("div", "controls");
+
+    // weighting slider (similarity vs model judgement)
+    const wg = el("div", "grp weight");
+    wg.innerHTML = '<label>Weighting</label>' +
+      '<span class="swatch sim"></span>' +
+      '<input type="range" min="0" max="100" step="5" value="' + Math.round(state.weights.sim * 100) + '">' +
+      '<span class="swatch llm"></span>' +
+      '<span class="wv">Similarity <b>' + fmtW(state.weights.sim) + '</b> · Model <b>' + fmtW(state.weights.llm) + '</b></span>';
+    const slider = wg.querySelector("input");
+    slider.oninput = () => {
+      const sim = Math.max(0, Math.min(1, (+slider.value) / 100));
+      state.weights.sim = sim; state.weights.llm = 1 - sim;
+      wg.querySelector(".wv").innerHTML = 'Similarity <b>' + fmtW(sim) + '</b> · Model <b>' + fmtW(1 - sim) + '</b>';
+      renderList(false);
+    };
+    bar.appendChild(wg);
+
+    // sort
+    const sg = el("div", "grp");
+    sg.appendChild(el("label", null, "Sort"));
+    const sSel = el("select");
+    [["fit", "Fit score"], ["coverage", "Skill coverage"], ["experience", "Experience"]].forEach(([v, t]) => {
+      const o = el("option", null, t); o.value = v; if (state.sortBy === v) o.selected = true; sSel.appendChild(o);
+    });
+    sSel.onchange = () => { state.sortBy = sSel.value; renderList(false); };
+    sg.appendChild(sSel); bar.appendChild(sg);
+
+    // filter by fit band
+    const fg = el("div", "grp");
+    fg.appendChild(el("label", null, "Show"));
+    const fSel = el("select");
+    [["all", "All fits"], ["strong", "Strong fit"], ["moderate", "Moderate fit"], ["weak", "Weak fit"]].forEach(([v, t]) => {
+      const o = el("option", null, t); o.value = v; if (state.filterBand === v) o.selected = true; fSel.appendChild(o);
+    });
+    fSel.onchange = () => { state.filterBand = fSel.value; renderList(false); };
+    fg.appendChild(fSel); bar.appendChild(fg);
+
+    // export
+    const xg = el("div", "grp spacer");
+    const xb = el("button", "btn btn--ghost btn--sm", "Export CSV");
+    xb.onclick = exportCSV;
+    xg.appendChild(xb); bar.appendChild(xg);
+
+    return bar;
+  }
+
+  function exportCSV() {
+    const gapMap = {};
+    (state.gap && state.gap.candidates || []).forEach(g => { gapMap[g.candidate_id] = g; });
+    let rows = (state.ranked || []).map(rc => ({ rc, final: computeFinal(rc), gap: gapMap[(rc.candidate || {}).id] }));
+    if (state.filterBand !== "all") rows = rows.filter(r => band(r.final) === state.filterBand);
+    rows.sort((a, b) => sortVal(b) - sortVal(a));
+    if (!rows.length) { toast("Nothing to export.", true); return; }
+
+    const head = ["Rank", "Name", "Email", "Experience (yrs)", "Fit score", "Fit band",
+      "Similarity", "Model score", "Skills matched", "Skills required", "Coverage %", "Skills"];
+    const lines = [head];
+    rows.forEach((r, i) => {
+      const c = r.rc.candidate || {}, s = r.rc.score || {}, g = r.gap;
+      lines.push([
+        i + 1, c.full_name || "", c.email || "", c.experience_years != null ? c.experience_years : "",
+        r.final.toFixed(1), bandLabel(band(r.final)),
+        ((+s.similarity_score || 0) * 100).toFixed(1), (+s.llm_score || 0).toFixed(1),
+        g ? g.matched.length : "", g ? (g.matched.length + g.missing.length) : "",
+        g ? Math.round(g.coverage * 100) : "", (c.skills || []).join("; "),
+      ]);
+    });
+    const csv = lines.map(row => row.map(csvCell).join(",")).join("\r\n");
+    const job = currentJob();
+    const name = ((job && job.title) || "candidates").replace(/[^\w.-]+/g, "_").slice(0, 60);
+    download(csv, name + "-shortlist.csv");
+    toast("Exported " + rows.length + " candidate" + (rows.length !== 1 ? "s" : "") + ".");
+  }
+  function csvCell(v) { v = String(v == null ? "" : v); return /[",\r\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }
+  function download(text, filename) {
+    const blob = new Blob([text], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a"); a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  function candidateCard(rc, i, ctx) {
+    ctx = ctx || {};
+    const cand = rc.candidate || {}, sc = rc.score || {};
+    const sim = +sc.similarity_score || 0;      // 0..1
+    const llm = +sc.llm_score || 0;             // 0..100
+    const final = ctx.final != null ? ctx.final : (+sc.final_score || 0);
+    const simContrib = state.weights.sim * sim * 100;  // points toward final
+    const llmContrib = state.weights.llm * llm;        // points toward final
+    const b = band(final);
+    const gap = ctx.gap;
+    const required = ctx.required || [];
+    const reqTotal = required.length;
+    const animate = !!ctx.animate;
+    const coverText = (gap && reqTotal)
+      ? ' · <span class="cover">' + gap.matched.length + "/" + reqTotal + "</span> required skills"
+      : "";
+
+    const card = el("div", "cand" + (i === 0 ? " top" : ""));
+    const skills = (cand.skills || []);
+    card.innerHTML =
+      '<div class="cand__main">' +
+        '<div class="cand__num">' + String(i + 1).padStart(2, "0") + '</div>' +
+        '<div class="cand__id">' +
+          '<div class="cand__name">' + esc(cand.full_name || "Unknown") + '<span class="fit ' + b + '">' + bandLabel(b) + '</span></div>' +
+          '<div class="cand__meta">' + (cand.experience_years != null ? cand.experience_years + " yrs" : "—") + " · " + skills.length + " skills" + coverText + (cand.email ? " · " + esc(cand.email) : "") + '</div>' +
+          '<div class="meter">' +
+            '<div class="meter__track">' +
+              '<div class="meter__seg sim" data-w="' + simContrib.toFixed(1) + '%" style="width:' + (animate ? "0" : simContrib.toFixed(1) + "%") + '"></div>' +
+              '<div class="meter__seg llm" data-w="' + llmContrib.toFixed(1) + '%" style="width:' + (animate ? "0" : llmContrib.toFixed(1) + "%") + '"></div>' +
+            '</div>' +
+            '<div class="meter__legend">' +
+              '<span><span class="swatch sim"></span>Similarity ×' + fmtW(state.weights.sim) + ' · <b>' + (sim * 100).toFixed(1) + '</b></span>' +
+              '<span><span class="swatch llm"></span>Model judgement ×' + fmtW(state.weights.llm) + ' · <b>' + llm.toFixed(1) + '</b></span>' +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="cand__final"><div class="n" style="color:var(--' + b + ')">' + final.toFixed(1) + '</div><div class="l">Fit score</div></div>' +
+      '</div>' +
+      '<div class="cand__why">' +
+        '<p>' + (sc.llm_reasoning ? "“" + esc(sc.llm_reasoning) + "”" : "No reasoning provided.") + '</p>' +
+        '<div class="cand__actions">' +
+          stageSelectHTML(cand.id, cand.status) +
+          '<button class="cand__toggle">Details</button>' +
+        '</div>' +
+      '</div>' +
+      '<div class="cand__detail">' +
+        (gap && reqTotal ? detailRow("Skill match",
+          '<div class="miniskills">' +
+            gap.matched.map(s => '<span class="miniskill have">' + esc(s) + '</span>').join("") +
+            gap.missing.map(s => '<span class="miniskill miss">' + esc(s) + '</span>').join("") +
+          '</div>') : "") +
+        detailRow("Contact", [cand.email, cand.phone].filter(Boolean).map(esc).join(" · ") || "—") +
+        detailRow("Skills", skills.length ? '<div class="miniskills">' + skills.map(s => '<span class="miniskill">' + esc(s) + '</span>').join("") + '</div>' : "—") +
+        detailRow("Education", (cand.education || []).length ? (cand.education).map(ed => esc([ed.degree, ed.institution, ed.year].filter(Boolean).join(", "))).join("<br>") : "—") +
+      '</div>';
+
+    const toggle = card.querySelector(".cand__toggle");
+    const det = card.querySelector(".cand__detail");
+    toggle.onclick = () => { const open = det.classList.toggle("open"); toggle.textContent = open ? "Hide details" : "Details"; };
+    wireStages(card);
+    return card;
+  }
+  function detailRow(k, v) { return '<div class="detailrow"><div class="k">' + k + '</div><div class="v">' + v + '</div></div>'; }
+
+  // ---------- icons ----------
+  function icon(name) {
+    const s = 'width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"';
+    if (name === "upload") return '<svg ' + s + '><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>';
+    if (name === "people") return '<svg ' + s + '><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>';
+    return '<svg ' + s + '><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>';
+  }
+
+  // ---------- boot ----------
+  async function boot() {
+    try {
+      state.user = await api("/v1/auth/me");
+      $("#whoEmail").textContent = state.user.email;
+      $("#whoRole").textContent = state.user.role || "recruiter";
+      $("#avatar").textContent = (state.user.email[0] || "?").toUpperCase();
+      showApp();
+      await loadJobs();
+      showDashboard();
+    } catch (e) { store.token = null; showAuth(); }
+  }
+
+  syncAuthMode();
+  if (store.token) boot(); else showAuth();
+})();
+</script>
+</body>
+</html>

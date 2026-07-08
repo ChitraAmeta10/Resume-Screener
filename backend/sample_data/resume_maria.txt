@@ -1,0 +1,16 @@
+Maria Santos
+Frontend Developer
+maria.santos@example.com | +351 912 345 678 | Lisbon, PT
+
+Summary
+Frontend developer with 3 years of experience building web interfaces.
+
+Skills
+JavaScript, TypeScript, React, Vue, Node.js, MySQL, Git
+
+Experience
+Frontend Developer, WebStudio (2022-Present)
+- Built React and Vue single-page applications; some Node.js/Express backends.
+
+Education
+Bachelor of Design, University of Lisbon, 2022

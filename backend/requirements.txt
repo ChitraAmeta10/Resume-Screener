@@ -1,0 +1,38 @@
+# Requires Python 3.10+  (uses modern typing; runs on 3.9 via __future__ annotations)
+
+# ---- Web framework ----
+fastapi>=0.110
+uvicorn[standard]>=0.29
+python-multipart>=0.0.9
+
+# ---- Data / DB ----
+sqlalchemy>=2.0
+alembic>=1.13
+psycopg2-binary>=2.9      # PostgreSQL driver (production)
+
+# ---- Validation / settings ----
+pydantic>=2.6
+pydantic-settings>=2.2
+email-validator>=2.1
+
+# ---- Auth ----
+PyJWT>=2.8
+passlib[bcrypt]>=1.7.4
+bcrypt==4.0.1             # pinned: avoids passlib<->bcrypt 4.1 version warning
+
+# ---- Cache (optional; falls back to in-memory if REDIS_URL unset) ----
+redis>=5.0
+
+# ---- Resume parsing ----
+pdfplumber>=0.11
+python-docx>=1.1
+
+# ---- LLM providers (optional; only needed for the chosen provider) ----
+anthropic>=0.30
+openai>=1.30
+
+# ---- Tooling / dev ----
+reportlab>=4.1           # used by scripts/generate_sample_data.py
+requests>=2.31           # used by scripts/demo.py (HTTP mode)
+pytest>=8.0
+httpx>=0.27

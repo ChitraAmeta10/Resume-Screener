@@ -1,0 +1,13 @@
+Senior Backend Engineer (AI Platform)
+
+We're hiring a backend engineer to build AI-powered document-processing services.
+
+Requirements:
+- Strong Python and experience building REST APIs with FastAPI (or Flask/Django)
+- Solid PostgreSQL and SQL data modeling
+- Containerization with Docker and orchestration with Kubernetes
+- Cloud deployment experience on AWS
+- Comfort integrating LLMs and working with NLP / Machine Learning workflows
+- CI/CD, Git, and automated testing (Pytest)
+
+Nice to have: Redis, embeddings / semantic search, Terraform.
