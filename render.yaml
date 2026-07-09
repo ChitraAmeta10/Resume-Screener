@@ -1,0 +1,41 @@
+# Render blueprint — backend API (FastAPI) + a managed PostgreSQL.
+# Deploy: Render Dashboard → New → Blueprint → connect this repo.
+# The frontend deploys separately on Vercel (see DEPLOY.md).
+
+databases:
+  - name: resume-screener-db      # free managed Postgres, auto-linked below
+    plan: free
+    databaseName: resume_screener
+    user: resume
+
+services:
+  - type: web
+    name: resume-screener-api
+    runtime: python
+    plan: free
+    rootDir: .
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: cd backend && uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /v1/health
+    envVars:
+      - key: DATABASE_URL          # auto-filled from the managed Postgres above
+        fromDatabase:
+          name: resume-screener-db
+          property: connectionString
+      - key: PYTHON_VERSION
+        value: "3.12.6"
+      - key: ENV
+        value: prod
+      - key: AUTO_CREATE_TABLES
+        value: "true"              # create tables on first boot
+      - key: LLM_PROVIDER
+        value: mock                # set openai/anthropic + a key for real scoring
+      - key: MONGODB_DB
+        value: resume_screener
+      - key: JWT_SECRET
+        generateValue: true
+      # --- set these in the Render dashboard ---
+      - key: MONGODB_URL
+        sync: false                # MongoDB Atlas SRV string — OR leave UNSET to disable Mongo
+      - key: CORS_ORIGINS
+        sync: false                # your Vercel URL as a JSON list: ["https://your-app.vercel.app"]

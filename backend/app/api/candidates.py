@@ -20,10 +20,12 @@ from app.schemas.candidate import (
     CandidateStatusUpdate,
     PooledCandidate,
     RankedCandidate,
+    ResumeDocumentOut,
     ScoreOut,
     SkillGapReport,
 )
 from app.services.cache import get_cache
+from app.services.documents import get_document_store
 from app.services.scorer import score_candidate
 
 router = APIRouter(tags=["candidates"])
@@ -246,6 +248,27 @@ def get_candidate(
     )
 
 
+@router.get("/candidates/{candidate_id}/document", response_model=ResumeDocumentOut)
+def get_candidate_document(
+    candidate_id: uuid.UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> dict:
+    """Return the raw resume document (text + extraction artifact) from MongoDB."""
+    candidate = db.get(Candidate, candidate_id)
+    if candidate is None:
+        raise HTTPException(status_code=404, detail="Candidate not found")
+    _get_owned_job(db, candidate.job_id, current_user)  # authz: owner or admin
+
+    doc = get_document_store().get(candidate_id)
+    if doc is None:
+        raise HTTPException(
+            status_code=404,
+            detail="No stored resume document (MongoDB store is not enabled).",
+        )
+    return doc
+
+
 @router.patch("/candidates/{candidate_id}/status", response_model=CandidateOut)
 def update_candidate_status(
     candidate_id: uuid.UUID,
@@ -280,4 +303,5 @@ def delete_candidate(
         raise HTTPException(status_code=404, detail="Candidate not found")
     db.delete(candidate)
     db.commit()
+    get_document_store().delete([candidate_id])
     return Response(status_code=status.HTTP_204_NO_CONTENT)

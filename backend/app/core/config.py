@@ -10,6 +10,7 @@ from __future__ import annotations
 from functools import lru_cache
 from typing import Literal, Optional
 
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -38,6 +39,13 @@ class Settings(BaseSettings):
     REDIS_URL: Optional[str] = None
     CACHE_TTL_SECONDS: int = 60 * 60
 
+    # ---- Document store (MongoDB) --------------------------------------------
+    # Raw resume text + the full LLM extraction artifact are stored as documents
+    # in MongoDB. If MONGODB_URL is unset, the store is disabled and the app
+    # falls back to the raw_resume_text column in the relational DB.
+    MONGODB_URL: Optional[str] = None
+    MONGODB_DB: str = "resume_screener"
+
     # ---- Auth ----------------------------------------------------------------
     JWT_SECRET: str = "change-me-in-production"
     JWT_ALGORITHM: str = "HS256"
@@ -63,10 +71,26 @@ class Settings(BaseSettings):
     LLM_WEIGHT: float = 0.6         # weight of LLM judgement score
     EMBEDDING_DIM: int = 512
 
+    @field_validator("DATABASE_URL")
+    @classmethod
+    def _normalize_db_url(cls, v: str) -> str:
+        """Accept the ``postgres://`` / ``postgresql://`` URLs that hosts like
+        Render, Neon, Supabase and Heroku hand out, and give them the explicit
+        driver SQLAlchemy 2.0 requires (``postgresql+psycopg2://``)."""
+        if v.startswith("postgres://"):
+            return "postgresql+psycopg2://" + v[len("postgres://"):]
+        if v.startswith("postgresql://"):
+            return "postgresql+psycopg2://" + v[len("postgresql://"):]
+        return v
+
     # ---- Derived helpers -----------------------------------------------------
     @property
     def is_sqlite(self) -> bool:
         return self.DATABASE_URL.startswith("sqlite")
+
+    @property
+    def mongo_enabled(self) -> bool:
+        return bool(self.MONGODB_URL)
 
     @property
     def sqlalchemy_connect_args(self) -> dict:

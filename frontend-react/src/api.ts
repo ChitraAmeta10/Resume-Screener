@@ -1,5 +1,10 @@
 const TOKEN_KEY = "sift_token";
 
+// Base URL of the backend API. Empty in local dev (Vite proxies /v1 → :8001) and
+// when the backend serves the built frontend. In a split deploy (frontend on
+// Vercel, backend on Render) set VITE_API_BASE to the backend's URL at build time.
+const API_BASE = (import.meta.env.VITE_API_BASE || "").replace(/\/+$/, "");
+
 export const tokenStore = {
   get(): string | null {
     try {
@@ -55,7 +60,7 @@ export async function api<T = unknown>(path: string, opts: ApiOpts = {}): Promis
   const token = tokenStore.get();
   if (opts.auth !== false && token) headers["Authorization"] = "Bearer " + token;
 
-  const res = await fetch(path, { method: opts.method || "GET", headers, body });
+  const res = await fetch(API_BASE + path, { method: opts.method || "GET", headers, body });
   const text = await res.text();
   let data: unknown = null;
   try {

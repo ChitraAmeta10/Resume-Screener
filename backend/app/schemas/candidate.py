@@ -112,6 +112,17 @@ class SkillGapReport(BaseModel):
 # ---------------------------------------------------------------------------
 # Talent pool: every candidate across all of the user's jobs, searchable.
 # ---------------------------------------------------------------------------
+class ResumeDocumentOut(BaseModel):
+    """The raw resume artifact stored in MongoDB for a candidate."""
+
+    candidate_id: str
+    job_id: str
+    filename: str
+    raw_text: str
+    profile: dict
+    created_at: datetime
+
+
 class PooledCandidate(BaseModel):
     candidate_id: uuid.UUID
     full_name: str

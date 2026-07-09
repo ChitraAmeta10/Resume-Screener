@@ -72,8 +72,15 @@ def delete_job(
 ) -> Response:
     """Delete a job (owner or admin). Its candidates and scores cascade away."""
     from app.api.candidates import _get_owned_job  # local import to avoid cycle
+    from app.models.candidate import Candidate
+    from app.services.documents import get_document_store
 
     job = _get_owned_job(db, job_id, current_user)
+    # Capture candidate ids so their MongoDB documents can be removed too.
+    cand_ids = list(
+        db.scalars(select(Candidate.id).where(Candidate.job_id == job_id)).all()
+    )
     db.delete(job)
     db.commit()
+    get_document_store().delete(cand_ids)
     return Response(status_code=status.HTTP_204_NO_CONTENT)

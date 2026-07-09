@@ -383,9 +383,27 @@ function CandidateCard({
   weights: Weights;
   onStatus: (s: Stage) => void;
 }) {
+  const toast = useToast();
   const [open, setOpen] = useState(false);
+  const [doc, setDoc] = useState<{ raw_text: string } | null>(null);
+  const [docLoading, setDocLoading] = useState(false);
   const cand = rc.candidate;
   const sc = rc.score;
+
+  async function toggleDoc() {
+    if (doc) {
+      setDoc(null);
+      return;
+    }
+    setDocLoading(true);
+    try {
+      setDoc(await api<{ raw_text: string }>(`/v1/candidates/${cand.id}/document`));
+    } catch (e) {
+      toast(errorDetail(e), true);
+    } finally {
+      setDocLoading(false);
+    }
+  }
   const sim = +(sc.similarity_score || 0);
   const llm = +(sc.llm_score || 0);
   const simContrib = weights.sim * sim * 100;
@@ -502,6 +520,18 @@ function CandidateCard({
                   .map((ed) => [ed.degree, ed.institution, ed.year].filter(Boolean).join(", "))
                   .join(" · ")
               : "—"
+          }
+        />
+        <DetailRow
+          k="Résumé"
+          v={
+            <>
+              <button className="cand__toggle" onClick={toggleDoc} disabled={docLoading}>
+                {docLoading ? "Loading…" : doc ? "Hide stored résumé" : "View stored résumé"}
+              </button>
+              <span className="docsrc"> · from MongoDB</span>
+              {doc && <pre className="docraw">{doc.raw_text}</pre>}
+            </>
           }
         />
       </div>

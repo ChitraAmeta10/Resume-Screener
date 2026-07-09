@@ -532,3 +532,7 @@
   .boardcard__score { font-family: var(--mono); font-weight: 700; font-size: 14px; }
   .boardcard__job { font-size: 11.5px; color: var(--faint); font-family: var(--mono); cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .boardcard .stagesel { align-self: flex-start; margin-top: 2px; }
+
+  /* stored résumé viewer (MongoDB document) */
+  .docsrc { font-size: 11px; color: var(--faint); font-family: var(--mono); }
+  .docraw { margin: 8px 0 0; padding: 12px 14px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px; font-family: var(--mono); font-size: 12px; line-height: 1.55; color: var(--muted); white-space: pre-wrap; max-height: 260px; overflow: auto; }

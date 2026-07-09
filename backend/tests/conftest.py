@@ -15,6 +15,7 @@ os.environ.setdefault("AUTO_CREATE_TABLES", "false")
 os.environ.setdefault("JWT_SECRET", "test-secret")
 os.environ.setdefault("UPLOAD_DIR", "./.test_uploads")
 
+import mongomock  # noqa: E402
 import pytest  # noqa: E402
 from fastapi.testclient import TestClient  # noqa: E402
 
@@ -23,6 +24,11 @@ from app.db.base import Base  # noqa: E402
 from app.db.session import SessionLocal, engine  # noqa: E402
 from app.main import app  # noqa: E402
 from app.services.cache import get_cache  # noqa: E402
+from app.services.documents import (  # noqa: E402
+    ResumeDocumentStore,
+    reset_document_store,
+    set_document_store,
+)
 from app.services.llm.factory import get_llm_provider  # noqa: E402
 
 
@@ -32,8 +38,12 @@ def client():
     Base.metadata.create_all(bind=engine)
     get_cache.cache_clear()          # fresh in-memory cache per test
     get_llm_provider.cache_clear()   # fresh provider per test
+    # In-memory MongoDB (no server) so the document-store code path is exercised.
+    mongo_col = mongomock.MongoClient()["test"]["resume_documents"]
+    set_document_store(ResumeDocumentStore(mongo_col))
     with TestClient(app) as c:
         yield c
+    reset_document_store()
     Base.metadata.drop_all(bind=engine)
 
 

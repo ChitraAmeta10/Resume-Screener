@@ -46,10 +46,14 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+# The app authenticates with Bearer tokens (not cookies), so credentials aren't
+# needed. Browsers also reject the `allow_origins=["*"]` + credentials combo, so
+# only enable credentials when specific origins are configured (e.g. the Vercel URL).
+_allow_all_origins = settings.CORS_ORIGINS == ["*"]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.CORS_ORIGINS,
-    allow_credentials=True,
+    allow_credentials=not _allow_all_origins,
     allow_methods=["*"],
     allow_headers=["*"],
 )

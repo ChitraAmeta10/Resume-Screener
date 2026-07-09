@@ -8,7 +8,8 @@ python-multipart>=0.0.9
 # ---- Data / DB ----
 sqlalchemy>=2.0
 alembic>=1.13
-psycopg2-binary>=2.9      # PostgreSQL driver (production)
+psycopg2-binary>=2.9      # PostgreSQL driver (relational core)
+pymongo>=4.6             # MongoDB driver (raw resume document store)
 
 # ---- Validation / settings ----
 pydantic>=2.6
@@ -36,3 +37,4 @@ reportlab>=4.1           # used by scripts/generate_sample_data.py
 requests>=2.31           # used by scripts/demo.py (HTTP mode)
 pytest>=8.0
 httpx>=0.27
+mongomock>=4.1           # in-memory MongoDB for tests (no server needed)

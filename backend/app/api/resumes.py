@@ -16,6 +16,7 @@ from app.db.session import get_db
 from app.models.candidate import Candidate
 from app.models.user import User
 from app.schemas.candidate import CandidateOut
+from app.services.documents import get_document_store
 from app.services.extractor import ExtractionError, extract_profile
 from app.services.parser import UnsupportedFileTypeError, extract_text
 
@@ -53,6 +54,8 @@ def upload_resumes(
 
     created: list[Candidate] = []
     errors: list[UploadError] = []
+    # (candidate, raw_text, profile, filename) captured for the MongoDB doc store
+    artifacts: list[tuple[Candidate, str, dict, str]] = []
     max_bytes = settings.MAX_UPLOAD_MB * 1024 * 1024
 
     for file in files:
@@ -87,6 +90,7 @@ def upload_resumes(
             )
             db.add(candidate)
             created.append(candidate)
+            artifacts.append((candidate, raw_text, profile.model_dump(), filename))
         except (ValueError, UnsupportedFileTypeError, ExtractionError) as exc:
             logger.warning("upload failed for %s: %s", filename, exc)
             errors.append(UploadError(filename=filename, error=str(exc)))
@@ -96,6 +100,17 @@ def upload_resumes(
     db.commit()
     for cand in created:
         db.refresh(cand)
+
+    # Persist the raw resume text + extraction artifact to MongoDB (if enabled).
+    store = get_document_store()
+    for cand, raw_text, profile_doc, filename in artifacts:
+        store.save(
+            candidate_id=cand.id,
+            job_id=cand.job_id,
+            filename=filename,
+            raw_text=raw_text,
+            profile=profile_doc,
+        )
 
     if not created and errors:
         # Nothing succeeded — surface a 422 with the per-file errors.

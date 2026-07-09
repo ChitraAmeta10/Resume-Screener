@@ -1,270 +1,330 @@
 # Resume Screener
 
-AI-powered resume parsing, structured extraction, scoring, and candidate ranking — as a production-shaped FastAPI backend.
+An **AI-powered resume-screening platform**. Upload resumes against a job, and it parses
+each one, extracts a structured profile, scores candidates on real fit (embeddings +
+LLM judgement), and ranks them into a shortlist — with skill-gap analysis, a hiring
+pipeline, and role-based dashboards.
 
-Upload resumes (PDF/DOCX/TXT) against a job description; the service extracts structured candidate data with an **LLM + Pydantic validation (with retry)**, scores each candidate using **embedding similarity + LLM judgement**, and returns a **ranked shortlist** with reasoning.
+**Stack:** FastAPI · React + TypeScript · PostgreSQL · MongoDB · SQLAlchemy · Alembic · JWT/RBAC · pytest
 
-> **Runs with zero setup.** The default configuration uses SQLite, an in-process cache, and a deterministic **offline mock LLM** — so you can clone and run the whole pipeline with no database, no Redis, and no API key. Switch to Postgres + Redis + a real LLM (Anthropic/OpenAI) purely through environment variables.
+> Runs **fully offline with zero setup** (SQLite + a built-in mock LLM), or in a
+> **production configuration** (PostgreSQL + MongoDB + a real LLM) — switched entirely
+> through environment variables, no code changes.
 
 ---
 
-## Highlights
+## Table of contents
+- [What it does](#what-it-does)
+- [Features](#features)
+- [Architecture](#architecture)
+- [How the AI works](#how-the-ai-works)
+- [Tech stack](#tech-stack)
+- [Getting started](#getting-started)
+- [Configuration](#configuration)
+- [API reference](#api-reference)
+- [Roles & access control](#roles--access-control)
+- [Testing](#testing)
+- [Project structure](#project-structure)
+- [Deployment](#deployment)
+- [Design decisions](#design-decisions)
 
-- **Structured extraction with self-correction** — the LLM is asked for JSON matching a strict `CandidateProfile` schema; the output is validated with Pydantic and, on failure, the validation error is fed back into the prompt and retried (the core, most interesting piece).
-- **Hybrid scoring** — combines embedding cosine similarity with an LLM's holistic 0–100 fit judgement + a short reasoning string.
-- **Pluggable LLM providers** — `mock` (offline), `anthropic`, `openai`, behind a one-method interface.
-- **Auth + RBAC** — JWT login, `recruiter` vs `admin` roles.
-- **Caching** — Redis when configured, in-memory fallback otherwise; scoring results are memoized.
-- **Portable persistence** — the same SQLAlchemy models run on SQLite (dev/tests) and PostgreSQL (prod) via custom cross-dialect column types.
-- **Batteries included** — Alembic migrations, Docker Compose, a test suite, sample data, and an end-to-end demo script.
-- **Built-in web UI** — a single-page recruiter interface (served at `/`) for signing in, creating jobs, uploading resumes, and viewing the ranked shortlist. No separate frontend build.
+---
+
+## What it does
+
+A recruiter creates a **job** (pasting the description). The app extracts the required
+skills. They then **upload resumes** (PDF / DOCX / TXT). For each resume the system:
+
+1. **Extracts the text** from the file.
+2. **Structures it** into a validated profile (name, email, skills, experience, education)
+   using an LLM with a schema-validation retry loop.
+3. **Scores the fit** by blending an embedding-similarity signal with an LLM's holistic
+   judgement, producing a 0–100 score plus a short reasoning string.
+4. **Ranks** all candidates into a shortlist, shows **which required skills each candidate
+   has vs. is missing**, and lets the recruiter move candidates through a **hiring
+   pipeline** (New → Screened → Interview → Offer → Rejected).
+
+Everything is visible in a **React dashboard** — KPIs, fit distribution, a searchable
+talent pool, and a Kanban pipeline board.
+
+---
+
+## Features
+
+**Screening & AI**
+- Resume parsing from **PDF, DOCX, TXT**
+- **Structured extraction** into a strict schema, with automatic retry on validation failure
+- **Hybrid scoring** = embedding similarity + LLM judgement, with explainable reasoning
+- **Skill-gap matching** — matched ✓ / missing ✕ against the job's required skills
+- Tunable scoring weights (live re-ranking), sort/filter, **CSV export**
+
+**Workflow**
+- **Hiring pipeline stages** with a Kanban board
+- **Talent pool** — searchable list of every candidate across jobs (server-side search)
+- **Role-aware dashboards** — admins get an org-wide team view; recruiters get their own
+- Job CRUD, résumé document viewer
+
+**Engineering**
+- **JWT auth + role-based access control** (owner-scoped queries)
+- **Polyglot persistence** — PostgreSQL (relational core) + MongoDB (résumé documents)
+- **Pluggable LLM provider** (mock / OpenAI / Anthropic) behind one interface
+- **Alembic migrations**, **46 automated tests** (pytest)
+- Decoupled **React + TypeScript** SPA over a REST API
 
 ---
 
 ## Architecture
 
-```mermaid
-flowchart TD
-    A[Recruiter] -->|JWT| B[FastAPI]
-    B --> C[POST /jobs<br/>extract required skills]
-    B --> D[POST /jobs/:id/resumes/upload]
-    D --> E[Parser<br/>pdfplumber / python-docx]
-    E --> F[Extractor<br/>LLM call]
-    F --> G{Pydantic<br/>valid?}
-    G -- no --> F
-    G -- yes --> H[(PostgreSQL<br/>candidates)]
-    B --> I[GET /jobs/:id/ranked-candidates]
-    I --> J[Scoring engine]
-    J --> K[Embedding cosine similarity]
-    J --> L[LLM judgement + reasoning]
-    J --> M[(scores)]
-    J -.cache.-> N[(Redis)]
-    I --> O[Ranked shortlist JSON]
+```
+                    ┌──────────────────────────────┐
+                    │   React + TypeScript (Vite)   │   ← frontend-react/
+                    │  dashboard · pool · pipeline  │
+                    └───────────────┬──────────────┘
+                                    │  REST /v1 (JWT)
+                    ┌───────────────▼──────────────┐
+                    │         FastAPI backend       │   ← backend/app/
+                    │  api → services → models      │
+                    │  auth · jobs · resumes ·      │
+                    │  candidates · dashboard       │
+                    └───┬───────────┬───────────┬───┘
+                        │           │           │
+         ┌──────────────▼──┐  ┌─────▼─────┐  ┌──▼──────────────┐
+         │  PostgreSQL      │  │  MongoDB  │  │  LLM provider    │
+         │  users, jobs,    │  │  raw      │  │  mock / OpenAI / │
+         │  candidates,     │  │  résumé   │  │  Anthropic       │
+         │  scores, stages  │  │  documents│  │  (+ embeddings)  │
+         └──────────────────┘  └───────────┘  └─────────────────┘
 ```
 
-**Request flow for the ranked shortlist:** parse → extract (validate + retry) → store → embed + LLM-score → weighted combine → cache → sort.
+**Layered backend:** `api/` (HTTP routes) → `services/` (business logic: extraction,
+scoring, embeddings, cache, document store, LLM) → `models/` (SQLAlchemy) + `schemas/`
+(Pydantic).
+
+**Polyglot persistence:** the **relational, transactional data** (users, jobs, candidates,
+scores, pipeline stages, RBAC) lives in **PostgreSQL**; the **unstructured résumé
+artifacts** (raw text + the full LLM extraction JSON) live in **MongoDB**, where a flexible
+document model fits naturally. Both sit behind small abstractions, and each has a graceful
+fallback (SQLite for the DB; the relational text column when Mongo is disabled).
+
+---
+
+## How the AI works
+
+### 1. Structured extraction (the core pattern)
+LLMs don't reliably emit schema-perfect JSON, so extraction is a **validate-and-retry loop**:
+
+```
+LLM call → parse JSON → validate against a strict Pydantic schema
+        → on failure, feed the validation error back into the prompt and retry
+```
+
+See [`backend/app/services/extractor.py`](backend/app/services/extractor.py). This makes
+extraction robust instead of hoping the model behaves.
+
+### 2. Hybrid scoring
+```
+final = SIMILARITY_WEIGHT · (cosine_similarity × 100) + LLM_WEIGHT · llm_score
+```
+- **similarity** — cosine similarity between the job description and the résumé
+  (embeddings; see [`embeddings.py`](backend/app/services/embeddings.py))
+- **llm_score** — an LLM's 0–100 holistic judgement + a short reasoning string
+- Results are **cached** per `(job_id, candidate_id)` to avoid recomputation.
+
+See [`backend/app/services/scorer.py`](backend/app/services/scorer.py).
+
+### 3. Skill-gap matching
+Required skills (extracted from the job) are matched case-insensitively against each
+candidate's extracted skills to produce matched / missing lists and a coverage ratio.
+
+> **Note on the offline defaults:** out of the box the LLM is a deterministic **mock** and
+> embeddings use a lightweight hashing trick — so the whole pipeline runs with no API keys.
+> Set a real provider/model via env to use actual models; the abstraction makes it a drop-in.
 
 ---
 
 ## Tech stack
 
 | Layer | Technology |
-| --- | --- |
-| API | FastAPI + Uvicorn |
-| Persistence | SQLAlchemy 2.0 (SQLite dev / PostgreSQL prod), Alembic |
-| Validation / settings | Pydantic v2, pydantic-settings |
-| Auth | JWT (PyJWT) + bcrypt (passlib), RBAC |
-| Cache | Redis (in-memory fallback) |
-| Resume parsing | pdfplumber, python-docx |
-| Extraction / scoring | LLM (Anthropic / OpenAI / mock) + local embeddings |
-| Packaging | Docker + docker-compose |
+|---|---|
+| **Frontend** | React 18, TypeScript, Vite |
+| **Backend** | FastAPI, Python 3.12 |
+| **Relational DB** | PostgreSQL (SQLite for local/offline) via SQLAlchemy 2 + Alembic |
+| **Document DB** | MongoDB via PyMongo (raw résumé artifacts) |
+| **Auth** | JWT (PyJWT) + bcrypt password hashing + role-based access control |
+| **AI** | Pluggable LLM provider (mock / OpenAI / Anthropic); offline embeddings |
+| **Parsing** | pdfplumber (PDF), python-docx (DOCX) |
+| **Testing** | pytest, mongomock (in-memory Mongo) — 46 tests |
 
 ---
 
-## Quickstart
+## Getting started
 
-### 0. Fastest path — the offline demo (no setup)
+### Prerequisites
+- **Python 3.10+** (3.12 recommended)
+- **Node.js 18+** (for the React frontend)
+- *(Optional, for the full stack)* **PostgreSQL** and **MongoDB**
 
-```bash
-pip install -r requirements.txt
-python scripts/generate_sample_data.py   # creates sample resumes + a job description
-python scripts/demo.py                    # runs the whole flow in-process, prints a ranking
-```
-
-Example output:
-
-```
-[2/4] Created job 2114...
-      Extracted required skills: Python, SQL, PostgreSQL, Redis, FastAPI, ...
-[3/4] Uploaded 3 resumes -> extracted 3 profiles
-      - Jane Doe        8.0 yrs  skills: Python, PostgreSQL, Redis, FastAPI, Docker, Kubernetes
-      - Arjun Mehta     4.0 yrs  skills: Python, PostgreSQL, Django, Docker, AWS, Pandas
-      - Maria Santos    3.0 yrs  skills: JavaScript, TypeScript, MySQL, React, Vue, Node.js
-[4/4] Ranked shortlist:
-      #  Name              Final    Sim    LLM  Reasoning
-      1  Jane Doe           74.3   58.6   84.7  Matches 13/17 required skills ...
-      2  Arjun Mehta        52.0   37.2   61.8  Matches 7/17 required skills ...
-      3  Maria Santos       30.6   18.4   38.8  Matches 1/17 required skills (Git).
-```
-
-### 1. Run the API + web UI
+### Option A — Fully offline, zero setup (SQLite + mock LLM)
+No database servers, no API keys.
 
 ```bash
-cp .env.example .env          # optional; defaults already work
-uvicorn app.main:app --reload
+# 1. Python env + deps
+python3 -m venv .venv
+.venv/bin/pip install -r backend/requirements.txt
+
+# 2. Configure for offline mode (backend/.env)
+#    DATABASE_URL=sqlite:///./resume_screener.db
+#    LLM_PROVIDER=mock
+#    (leave MONGODB_URL unset)
+cp backend/.env.example backend/.env   # then edit if needed
+
+# 3. Build the frontend (served by the API at /)
+cd frontend-react && npm install && npm run build && cd ..
+
+# 4. Run the API
+cd backend && ../.venv/bin/uvicorn app.main:app --reload --port 8001
+```
+Open **http://localhost:8001** and register an account.
+
+> Prefer `make`? From the repo root: `make install`, `make web-install`, `make web-build`,
+> `make run`.
+
+### Option B — Full stack (PostgreSQL + MongoDB)
+```bash
+# start the databases (example: Homebrew on macOS)
+brew services start postgresql@14
+brew services start mongodb-community
+createdb resume_screener
+
+# point backend/.env at them:
+#   DATABASE_URL=postgresql+psycopg2://USER@localhost:5432/resume_screener
+#   MONGODB_URL=mongodb://localhost:27017
+#   MONGODB_DB=resume_screener
+
+# create the schema, then run
+cd backend && ../.venv/bin/alembic upgrade head   # or set AUTO_CREATE_TABLES=true
+../.venv/bin/uvicorn app.main:app --reload --port 8001
 ```
 
-Open **http://localhost:8000/** for the built-in recruiter web UI — sign in, create a job, upload resumes, and see the ranked shortlist with fit scores and reasoning. The interactive API docs are at **http://localhost:8000/docs** (use **Authorize** after registering).
-
-### 2. Run with Docker (Postgres + Redis)
-
+### Frontend development (hot reload)
 ```bash
-docker compose up --build
-```
-
-This starts Postgres, Redis, and the API (running Alembic migrations first). It defaults to the mock LLM; to use a real model, set `LLM_PROVIDER` and the corresponding API key (see below).
-
-### 3. Use a real LLM
-
-```bash
-export LLM_PROVIDER=anthropic
-export ANTHROPIC_API_KEY=sk-ant-...
-export ANTHROPIC_MODEL=claude-sonnet-5     # or another model you have access to
-uvicorn app.main:app --reload
-```
-
-(Or `LLM_PROVIDER=openai` with `OPENAI_API_KEY`.) No code changes — the provider is selected from config.
-
----
-
-## API
-
-All routes are under `/v1`. Auth is via `Authorization: Bearer <token>`.
-
-| Method | Endpoint | Purpose | Auth |
-| --- | --- | --- | --- |
-| POST | `/v1/auth/register` | Create a recruiter/admin account | — |
-| POST | `/v1/auth/login` | Log in, returns a JWT (OAuth2 form) | — |
-| GET | `/v1/auth/me` | Current user | JWT |
-| POST | `/v1/jobs` | Create a job (auto-extracts required skills) | JWT |
-| GET | `/v1/jobs` | List your jobs | JWT |
-| GET | `/v1/jobs/{id}` | Job detail | JWT |
-| POST | `/v1/jobs/{id}/resumes/upload` | Upload one or more resumes | JWT |
-| GET | `/v1/jobs/{id}/candidates` | List extracted candidates | JWT |
-| GET | `/v1/jobs/{id}/ranked-candidates` | Ranked shortlist with scores (`?rescore=true`) | JWT |
-| GET | `/v1/candidates/{id}` | Candidate detail + score | JWT |
-| DELETE | `/v1/candidates/{id}` | Delete a candidate | JWT (admin) |
-
-### cURL walkthrough
-
-```bash
-# register + login
-curl -s -X POST localhost:8000/v1/auth/register \
-  -H 'Content-Type: application/json' \
-  -d '{"email":"me@example.com","password":"password1"}'
-
-TOKEN=$(curl -s -X POST localhost:8000/v1/auth/login \
-  -d 'username=me@example.com&password=password1' | python -c 'import sys,json;print(json.load(sys.stdin)["access_token"])')
-
-# create a job
-JOB=$(curl -s -X POST localhost:8000/v1/jobs -H "Authorization: Bearer $TOKEN" \
-  -H 'Content-Type: application/json' \
-  -d '{"title":"Backend Engineer","description":"Python, FastAPI, PostgreSQL, Docker, AWS"}' \
-  | python -c 'import sys,json;print(json.load(sys.stdin)["id"])')
-
-# upload a resume
-curl -s -X POST "localhost:8000/v1/jobs/$JOB/resumes/upload" \
-  -H "Authorization: Bearer $TOKEN" -F "files=@sample_data/resume_jane.pdf"
-
-# ranked shortlist
-curl -s "localhost:8000/v1/jobs/$JOB/ranked-candidates" -H "Authorization: Bearer $TOKEN"
+cd frontend-react && npm run dev   # Vite dev server on :5173, proxies /v1 → :8001
 ```
 
 ---
 
 ## Configuration
 
-Everything is environment-driven (see `.env.example`). Key variables:
+All settings are environment-driven ([`backend/app/core/config.py`](backend/app/core/config.py)).
+Copy `backend/.env.example` → `backend/.env` and adjust.
 
-| Variable | Default | Notes |
-| --- | --- | --- |
-| `DATABASE_URL` | `sqlite:///./resume_screener.db` | Use `postgresql+psycopg2://...` in prod |
-| `REDIS_URL` | *(unset)* | In-memory cache if unset |
-| `JWT_SECRET` | `change-me-in-production` | **Set this in prod** |
-| `LLM_PROVIDER` | `mock` | `mock` / `anthropic` / `openai` |
-| `LLM_MAX_RETRIES` | `2` | Extraction validation retries |
-| `ANTHROPIC_API_KEY` / `ANTHROPIC_MODEL` | — / `claude-sonnet-5` | For the Anthropic provider |
-| `SIMILARITY_WEIGHT` / `LLM_WEIGHT` | `0.4` / `0.6` | `final = 0.4·sim·100 + 0.6·llm` |
-| `AUTO_CREATE_TABLES` | `true` | Dev convenience; use Alembic in prod |
+| Variable | Default | Purpose |
+|---|---|---|
+| `DATABASE_URL` | `sqlite:///./resume_screener.db` | Relational DB; use `postgresql+psycopg2://…` in prod |
+| `MONGODB_URL` | *(unset)* | Enables the MongoDB résumé document store |
+| `MONGODB_DB` | `resume_screener` | Mongo database name |
+| `LLM_PROVIDER` | `mock` | `mock` / `openai` / `anthropic` |
+| `OPENAI_API_KEY` / `ANTHROPIC_API_KEY` | *(unset)* | Key for the chosen real provider |
+| `JWT_SECRET` | `change-me-in-production` | Token signing secret (set a strong value) |
+| `SIMILARITY_WEIGHT` / `LLM_WEIGHT` | `0.4` / `0.6` | Hybrid-scoring blend |
+| `REDIS_URL` | *(unset)* | Optional Redis cache (else in-process) |
+| `CORS_ORIGINS` | `["*"]` | Allowed frontend origins |
 
 ---
 
-## How the core pieces work
+## API reference
 
-### Structured extraction (the heart)
+Interactive docs (Swagger) live at **`/docs`** when the server is running. Key endpoints:
 
-`app/services/extractor.py` implements:
+| Method | Path | Description |
+|---|---|---|
+| `POST` | `/v1/auth/register` | Create an account (role: recruiter/admin) |
+| `POST` | `/v1/auth/login` | Get a JWT |
+| `GET`  | `/v1/dashboard` | Aggregated metrics (role-aware: team vs personal) |
+| `POST` | `/v1/jobs` | Create a job (auto-extracts required skills) |
+| `GET`  | `/v1/jobs` | List your jobs |
+| `DELETE` | `/v1/jobs/{id}` | Delete a job (cascades candidates + docs) |
+| `POST` | `/v1/jobs/{id}/resumes/upload` | Upload & screen resumes |
+| `GET`  | `/v1/jobs/{id}/ranked-candidates` | Ranked shortlist with scores |
+| `GET`  | `/v1/jobs/{id}/skill-gap` | Per-candidate matched/missing skills |
+| `GET`  | `/v1/candidates` | Talent pool across jobs (`?search=`) |
+| `PATCH`| `/v1/candidates/{id}/status` | Move a candidate through the pipeline |
+| `GET`  | `/v1/candidates/{id}/document` | Raw résumé document (from MongoDB) |
+| `GET`  | `/v1/health` | Health check |
 
-```
-LLM call → parse JSON → validate against CandidateProfile (Pydantic)
-        → on failure: append the validation error to the prompt and retry (≤ LLM_MAX_RETRIES)
-```
+---
 
-LLMs don't reliably return schema-perfect JSON on the first try, so this loop turns "hope the model behaves" into a robust contract. A tolerant JSON recovery step also strips code fences and surrounding prose.
+## Roles & access control
 
-### Scoring engine
-
-`app/services/scorer.py` combines two signals:
-
-- **Similarity** — cosine similarity between embeddings of the JD and the resume text (`app/services/embeddings.py`). The default is a dependency-free, deterministic hashing embedding; swapping in a real embedding model / pgvector is a drop-in change.
-- **LLM judgement** — the model scores fit 0–100 and returns a one–two sentence justification.
-
-`final = SIMILARITY_WEIGHT · (similarity·100) + LLM_WEIGHT · llm_score`, memoized per `(job, candidate)`.
+- **Registration** picks a role: `recruiter` or `admin`. The role is embedded in the JWT.
+- **Recruiter** — sees and manages **only their own** jobs and candidates (owner-scoped
+  queries); a personal dashboard.
+- **Admin** — an **org-wide "team" dashboard** aggregating every recruiter's data, plus
+  candidate-deletion rights.
+- Every data query is scoped by role in the API, so a recruiter cannot access another user's
+  data — enforced server-side, not just hidden in the UI.
 
 ---
 
 ## Testing
 
 ```bash
-pytest        # 25 tests: auth, RBAC, jobs, upload+extraction, retry loop, scoring/ranking, PDF/DOCX parsing
+cd backend && ../.venv/bin/pytest      # 46 tests
 ```
-
-Tests run fully offline (SQLite + mock LLM + in-memory cache) with a fresh database per test.
+Tests run fully offline: **SQLite** for the DB and **mongomock** (in-memory MongoDB) for the
+document store — no servers or keys required. Coverage includes auth/RBAC, upload &
+extraction, scoring, skill-gap, talent pool, pipeline status, job deletion + cascade, and the
+MongoDB document store.
 
 ---
 
 ## Project structure
 
 ```
-app/
-  main.py                 FastAPI app + lifespan (serves the web UI at /)
-  static/index.html       single-page recruiter web UI (no build step)
-  core/                   config (pydantic-settings), security (JWT, bcrypt)
-  db/                     Base, session, portable GUID/JSON column types
-  models/                 SQLAlchemy models: user, job, candidate, score
-  schemas/                Pydantic schemas incl. CandidateProfile (LLM target)
-  api/                    routers: auth, jobs, resumes, candidates + deps
-  services/
-    parser.py             PDF/DOCX/TXT text extraction
-    extractor.py          LLM extraction + Pydantic validation + retry
-    scorer.py             similarity + LLM judgement -> final score
-    embeddings.py         local deterministic embeddings + cosine
-    cache.py              Redis / in-memory cache
-    llm/                  provider interface + mock / anthropic / openai + prompts
-alembic/                  migrations
-tests/                    pytest suite
-scripts/                  generate_sample_data.py, demo.py
+resume-screener/
+├── backend/                     # FastAPI application
+│   ├── app/
+│   │   ├── api/                 # HTTP routes (auth, jobs, resumes, candidates, dashboard)
+│   │   ├── services/            # extraction, scoring, embeddings, cache, documents, llm/
+│   │   ├── models/              # SQLAlchemy models (Postgres/SQLite)
+│   │   ├── schemas/             # Pydantic request/response schemas
+│   │   ├── core/                # config + security (JWT/bcrypt)
+│   │   └── db/                  # engine/session, MongoDB, base
+│   ├── alembic/                 # database migrations
+│   ├── tests/                   # pytest suite
+│   └── requirements.txt
+├── frontend-react/              # React + TypeScript (Vite) SPA
+│   └── src/{components, api, types, ...}
+├── frontend/                    # legacy single-file UI (fallback)
+├── sample_data/                 # sample resumes + job description
+└── Makefile                     # install / run / test / web-build helpers
 ```
+
+---
+
+## Deployment
+
+- **Frontend → Vercel** (perfect for the Vite SPA).
+- **Backend → Render / Railway / Fly** (a normal long-lived server; simpler than serverless
+  for this stateful app). See `backend/.env.production.example`.
+- **Databases:** hosted **PostgreSQL** (Neon / Supabase) + **MongoDB Atlas** — both have free
+  tiers. Switching is just the `DATABASE_URL` / `MONGODB_URL` env vars + `alembic upgrade head`.
 
 ---
 
 ## Design decisions
 
-- **Offline-first, config-swappable.** Mock LLM + SQLite + in-memory cache by default so the project is trivially runnable and testable; production dependencies are opt-in via env. The same code path serves both.
-- **Thin provider interface.** Providers expose only `complete(system, user)`; all structured behaviour (parsing, validation, retries) lives in the callers, so adding a provider is trivial and the interesting logic is provider-agnostic.
-- **Portable column types.** A custom `GUID` and a `JSONB`/`JSON` variant let identical models run on SQLite and Postgres without conditionals.
-- **Persist + cache scores.** The `scores` table is the source of truth; Redis avoids recompute (and re-hitting the LLM) on repeated dashboard loads.
+- **Offline-first defaults.** SQLite + in-process cache + mock LLM means anyone can clone and
+  run it in seconds — while the same code scales to Postgres + Redis + a real LLM via env.
+- **Validate-and-retry extraction.** Treats the LLM as unreliable and enforces a schema,
+  which is what makes the structured output trustworthy.
+- **Hybrid, explainable scoring.** Combines a cheap deterministic signal (embeddings) with an
+  LLM judgement, and always returns a human-readable reason.
+- **Polyglot persistence, justified.** Relational data stays relational (Postgres); résumés —
+  which *are* documents — live in MongoDB. Not databases for their own sake.
+- **Server-side authorization.** RBAC is enforced in the API layer, not just the UI.
 
 ---
 
-## Handling PII
-
-Resumes contain personal data (emails, phone numbers). This project keeps raw text for re-processing but is structured so PII handling is explicit: logs avoid dumping candidate contents, files are stored per-job, and `DELETE /candidates/{id}` cascades to scores. In a real deployment you'd add encryption at rest, retention policies, access logging, and redaction in logs/telemetry.
-
----
-
-## Roadmap / next steps
-
-- **React dashboard** — the current UI is a dependency-free single-page app served by FastAPI; a React + Vite + Tailwind version is a natural upgrade for a richer build.
-- **Async batch processing** of hundreds of resumes with Celery/RQ + a task queue.
-- **pgvector** for persistent, indexed semantic search instead of in-memory cosine.
-- **Native structured outputs** where the provider supports schema-guaranteed JSON (keeping the validation+retry loop as a safety net).
-
----
-
-## Interview talking points
-
-- Why Pydantic validation **+ retry** matters (LLMs don't always return valid structured output first try).
-- Handling **PII** responsibly in storage and logs.
-- Why **hybrid** scoring (embedding similarity *and* LLM judgement) beats either alone.
-- How this scales to **async batch** processing (Celery/RQ) and **pgvector** for semantic search.
+*Built as a full-stack portfolio project demonstrating AI application/backend engineering,
+polyglot persistence, and a modern React frontend.*
