@@ -1,5 +1,6 @@
 # Resume Screener
 https://resume-screener-1ugv.vercel.app
+
 An **AI-powered resume-screening platform**. Upload resumes against a job, and it parses
 each one, extracts a structured profile, scores candidates on real fit (embeddings +
 LLM judgement), and ranks them into a shortlist — with skill-gap analysis, a hiring
