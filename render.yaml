@@ -34,6 +34,8 @@ services:
         value: resume_screener
       - key: JWT_SECRET
         generateValue: true
+      - key: UPLOAD_DIR
+        value: /tmp/uploads
       # --- set these in the Render dashboard ---
       - key: MONGODB_URL
         sync: false                # MongoDB Atlas SRV string — OR leave UNSET to disable Mongo
