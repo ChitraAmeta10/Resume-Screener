@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useScrollProgress } from "../../hooks/useScrollProgress";
 import ThreeScene from "./ThreeScene";
 import MagneticCursor from "./MagneticCursor";
+import LiveCodeTerminal from "./LiveCodeTerminal";
 import LandingNav from "./LandingNav";
 import LandingHero from "./LandingHero";
 import ScrollShowcase from "./ScrollShowcase";
