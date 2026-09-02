@@ -1,5 +1,6 @@
 import { use3DTilt } from "../../hooks/use3DTilt";
 import { IconSparkle, IconUpload, IconGauge } from "../../icons";
+import Counter from "./Counter";
 
 interface Props {
   onOpenAuth: () => void;
@@ -57,7 +58,9 @@ export default function LandingHero({ onOpenAuth, onExploreDemo }: Props) {
               <div className="lhero__card-name">Chitra Ameta</div>
               <div className="lhero__card-role">Senior AI Backend Engineer</div>
             </div>
-            <span className="fit strong">96.4 Fit</span>
+            <span className="fit strong">
+              <Counter target={96.4} decimals={1} suffix=" Fit" />
+            </span>
           </div>
 
           <div className="lhero__card-skills">
@@ -74,8 +77,8 @@ export default function LandingHero({ onOpenAuth, onExploreDemo }: Props) {
               <div className="meter__seg llm" style={{ width: "58%" }} />
             </div>
             <div className="meter__legend">
-              <span>Similarity: <b>92%</b></span>
-              <span>Model Score: <b>98%</b></span>
+              <span>Similarity: <b><Counter target={92} suffix="%" /></b></span>
+              <span>Model Score: <b><Counter target={98} suffix="%" /></b></span>
             </div>
           </div>
         </div>

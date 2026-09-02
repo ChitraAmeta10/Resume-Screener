@@ -720,6 +720,51 @@ body::after {
   color: var(--weak);
 }
 
+/* ==========================================================================
+   AWWWARDS-TIER MAGNETIC CUSTOM CURSOR & MICRO-INTERACTIONS
+   ========================================================================== */
+.aww-cursor-dot {
+  position: fixed;
+  top: -4px;
+  left: -4px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--sapphire);
+  box-shadow: 0 0 10px var(--sapphire-light);
+  pointer-events: none;
+  z-index: 9999;
+  transition: transform 0.04s linear, background-color 0.2s;
+  will-change: transform;
+}
+.aww-cursor-ring {
+  position: fixed;
+  top: -18px;
+  left: -18px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(37, 99, 235, 0.4);
+  background: rgba(37, 99, 235, 0.04);
+  pointer-events: none;
+  z-index: 9998;
+  transition: width 0.25s cubic-bezier(0.2, 0.8, 0.2, 1),
+              height 0.25s cubic-bezier(0.2, 0.8, 0.2, 1),
+              top 0.25s cubic-bezier(0.2, 0.8, 0.2, 1),
+              left 0.25s cubic-bezier(0.2, 0.8, 0.2, 1),
+              border-color 0.2s, background-color 0.2s;
+  will-change: transform;
+}
+.aww-cursor-ring--hover {
+  top: -26px;
+  left: -26px;
+  width: 52px;
+  height: 52px;
+  border-color: var(--sapphire);
+  background: rgba(37, 99, 235, 0.12);
+  box-shadow: 0 0 20px rgba(37, 99, 235, 0.25);
+}
+
 @keyframes laserSweep {
   0% { top: 0%; opacity: 0; }
   15% { opacity: 1; }

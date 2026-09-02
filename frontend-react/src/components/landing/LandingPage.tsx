@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { useScrollProgress } from "../../hooks/useScrollProgress";
 import ThreeScene from "./ThreeScene";
-import ParticleCanvas from "./ParticleCanvas";
-import LiveCodeTerminal from "./LiveCodeTerminal";
+import MagneticCursor from "./MagneticCursor";
 import LandingNav from "./LandingNav";
 import LandingHero from "./LandingHero";
 import ScrollShowcase from "./ScrollShowcase";
@@ -27,8 +26,8 @@ export default function LandingPage({ onAuthed }: Props) {
 
   return (
     <div className="lpage">
+      <MagneticCursor />
       <ThreeScene />
-      <ParticleCanvas />
 
       <LandingNav
         scrollProgress={scrollProgress}

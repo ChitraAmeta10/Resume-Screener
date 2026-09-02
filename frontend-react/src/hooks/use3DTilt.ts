@@ -59,13 +59,16 @@ export function use3DTilt({
     setGlarePosition((prev) => ({ ...prev, opacity: 0 }));
   }, [perspective]);
 
+  const glareStyle: React.CSSProperties = {
+    background: `radial-gradient(circle 240px at ${glarePosition.x}% ${glarePosition.y}%, rgba(37, 99, 235, 0.12), transparent 70%)`,
+    opacity: glarePosition.opacity,
+    pointerEvents: "none",
+  };
+
   return {
     ref,
     style,
-    glareStyle: {
-      background: `radial-gradient(circle 250px at ${glarePosition.x}% ${glarePosition.y}%, rgba(96, 165, 250, 0.18), transparent 80%)`,
-      opacity: glarePosition.opacity,
-    },
+    glareStyle,
     bind: {
       onMouseMove: handleMouseMove,
       onMouseLeave: handleMouseLeave,
