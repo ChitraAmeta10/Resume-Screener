@@ -95,12 +95,19 @@ def _build_collection() -> Any | None:
     """Create the MongoDB collection handle, or None if Mongo is disabled."""
     if not settings.mongo_enabled:
         return None
-    from pymongo import ASCENDING, MongoClient
+    try:
+        from pymongo import ASCENDING, MongoClient
 
-    client = MongoClient(settings.MONGODB_URL, serverSelectionTimeoutMS=3000)
-    col = client[settings.MONGODB_DB][_COLLECTION]
-    col.create_index([("candidate_id", ASCENDING)], unique=True)
-    return col
+        client = MongoClient(settings.MONGODB_URL, serverSelectionTimeoutMS=3000)
+        col = client[settings.MONGODB_DB][_COLLECTION]
+        col.create_index([("candidate_id", ASCENDING)], unique=True)
+        return col
+    except Exception as exc:
+        logger.warning(
+            "Failed to initialize MongoDB collection: %s. Continuing with relational DB only.",
+            exc,
+        )
+        return None
 
 
 def get_document_store() -> ResumeDocumentStore:
