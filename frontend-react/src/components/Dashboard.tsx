@@ -59,20 +59,44 @@ export default function Dashboard({ user, onOpenJob, onNewJob }: Props) {
   }
   if (!data) return null;
 
+  const createSampleJob = async () => {
+    try {
+      setLoading(true);
+      const newJob = await api<any>("/v1/jobs", {
+        method: "POST",
+        json: {
+          title: "Senior AI Backend Engineer",
+          description: "We are seeking a Senior AI Backend Engineer proficient in Python, FastAPI, PostgreSQL, Docker, Kubernetes, and LLM RAG pipelines. Experience with vector search, Redis, and Pytest is required.",
+        },
+      });
+      toast("Sample job created! Now screening candidates.");
+      onOpenJob(newJob.id);
+    } catch (err) {
+      toast(errorDetail(err), true);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (!data.total_jobs) {
     return (
       <div className="dash-empty">
         <div className="dash-empty__icon">
-          <IconStack size={32} />
+          <IconSparkle size={32} />
         </div>
         <h2>Ready to Screen Your First Batch?</h2>
         <p>
-          Create a job and Resume Screener AI will instantly parse resumes, extract skills,
-          and score candidates with dual-engine precision.
+          Create a job to extract required skills, or generate a sample role with one click
+          to explore the dual-engine screening pipeline immediately.
         </p>
-        <button className="btn btn--lg" onClick={onNewJob}>
-          <IconSparkle size={16} /> Create First Job
-        </button>
+        <div className="dash-empty__actions">
+          <button className="btn btn--lg" onClick={onNewJob}>
+            <IconBriefcase size={16} /> + Create New Job
+          </button>
+          <button className="btn btn--ghost btn--lg" onClick={createSampleJob}>
+            <IconSparkle size={16} /> ⚡ Load Sample Role & Candidates
+          </button>
+        </div>
       </div>
     );
   }

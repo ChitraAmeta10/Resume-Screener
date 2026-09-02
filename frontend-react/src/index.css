@@ -217,7 +217,7 @@ html, body, #root {
 }
 
 /* ==========================================================================
-   APP SHELL & SIDEBAR NAVIGATION
+   APP SHELL & SIDEBAR NAVIGATION (CERAMIC STUDIO LIGHT)
    ========================================================================== */
 .layout {
   display: flex;
@@ -226,8 +226,8 @@ html, body, #root {
 }
 
 .sidebar {
-  width: 260px;
-  background: var(--surface-sidebar);
+  width: 250px;
+  background: #FFFFFF;
   border-right: 1px solid var(--line);
   display: flex;
   flex-direction: column;
@@ -240,28 +240,43 @@ html, body, #root {
 }
 .layout.collapsed .sidebar { width: 72px; }
 
+/* Brand Header */
 .sidebar__brand {
-  padding: 18px 20px;
+  padding: 18px 16px;
   border-bottom: 1px solid var(--line);
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 10px;
+  cursor: pointer;
+  background: #FFFFFF;
 }
+.sidebar__brand-logo {
+  width: 32px; height: 32px; border-radius: 9px;
+  background: linear-gradient(135deg, var(--sapphire), var(--cyan));
+  color: #fff; display: grid; place-items: center; flex-shrink: 0;
+}
+.sidebar__brand-text { display: flex; align-items: center; gap: 6px; }
+.sidebar__brand-title { font-family: var(--display); font-weight: 800; font-size: 15px; color: var(--ink); white-space: nowrap; }
+.sidebar__brand-badge {
+  font-size: 9.5px; font-weight: 800; background: var(--sapphire); color: #fff;
+  padding: 2px 5px; border-radius: 5px;
+}
+
 .sidebar__scroll {
   flex: 1;
   overflow-y: auto;
   padding: 16px 12px;
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 20px;
 }
 
+/* Nav Items */
 .sidenav { display: flex; flex-direction: column; gap: 4px; }
-.sidenav button,
-.sidenav__item {
+.navitem {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   padding: 9px 12px;
   border-radius: 9px;
   color: var(--muted);
@@ -274,13 +289,13 @@ html, body, #root {
   width: 100%;
   text-align: left;
 }
-.sidenav button:hover,
-.sidenav__item:hover { background: rgba(241, 245, 249, 0.9); color: var(--ink); }
-.sidenav button.active,
-.sidenav__item.active { background: rgba(37, 99, 235, 0.08); color: var(--sapphire); font-weight: 700; }
-.sidenav button svg,
-.sidenav__item svg { color: inherit; flex-shrink: 0; }
+.navitem:hover { background: rgba(241, 245, 249, 0.9); color: var(--ink); }
+.navitem.active { background: rgba(37, 99, 235, 0.08); color: var(--sapphire); font-weight: 700; }
+.navitem .ni { display: grid; place-items: center; flex-shrink: 0; }
+.navitem .nl { white-space: nowrap; }
 
+/* Jobs Section */
+.sidebar__section { display: flex; flex-direction: column; gap: 8px; }
 .sidebar__head {
   display: flex;
   justify-content: space-between;
@@ -293,69 +308,90 @@ html, body, #root {
 }
 .sidebar__head .count {
   background: rgba(226, 232, 240, 0.8); color: var(--ink);
-  padding: 1px 6px; border-radius: 999px; font-size: 10.5px; margin-left: 4px;
+  padding: 1px 6px; border-radius: 999px; font-size: 10px; margin-left: 4px;
 }
+.sidebar__add-btn {
+  background: transparent; border: 0; color: var(--sapphire);
+  font-size: 11.5px; font-weight: 700; cursor: pointer; padding: 2px 4px;
+}
+.sidebar__add-btn:hover { text-decoration: underline; }
 
 .joblist { display: flex; flex-direction: column; gap: 3px; }
-.joblist button,
-.joblist__item {
+.joblist__empty { font-size: 12px; color: var(--faint); margin: 6px 4px 0; font-family: var(--mono); }
+.jobitem {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 8px 10px;
+  gap: 8px;
+  padding: 7px 10px;
   border-radius: 8px;
   color: var(--ink);
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
   background: transparent;
-  border: 0;
+  border: 1px solid transparent;
   width: 100%;
   text-align: left;
   transition: all 0.15s ease;
 }
-.joblist button:hover,
-.joblist__item:hover { background: rgba(241, 245, 249, 0.9); }
-.joblist button.active,
-.joblist__item.active { background: #FFFFFF; box-shadow: var(--shadow-sm); border: 1px solid var(--line); font-weight: 700; color: var(--sapphire); }
-.joblist__del,
-.joblist button .del {
+.jobitem:hover { background: rgba(241, 245, 249, 0.9); }
+.jobitem.active { background: #FFFFFF; box-shadow: var(--shadow-sm); border-color: var(--line); font-weight: 700; color: var(--sapphire); }
+.jobitem__badge {
+  width: 20px; height: 20px; border-radius: 5px;
+  background: rgba(37, 99, 235, 0.08); color: var(--sapphire);
+  font-size: 10.5px; font-weight: 800; font-family: var(--mono);
+  display: grid; place-items: center; flex-shrink: 0;
+}
+.jobitem__body { flex: 1; min-width: 0; }
+.jobitem__body .t { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+.jobitem__del {
   opacity: 0; background: transparent; border: 0; color: var(--faint);
   cursor: pointer; padding: 2px; transition: opacity 0.15s;
 }
-.joblist button:hover .del,
-.joblist__item:hover .joblist__del { opacity: 1; }
-.joblist__del:hover,
-.joblist button .del:hover { color: var(--weak); }
+.jobitem:hover .jobitem__del { opacity: 1; }
+.jobitem__del:hover { color: var(--weak); }
 
-.sidebar__foot {
-  padding: 14px 16px;
+/* Collapse Button */
+.sidebar__collapse {
+  background: transparent;
+  border: 0;
+  border-top: 1px solid var(--line);
+  padding: 8px;
+  color: var(--faint);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: background 0.15s, color 0.15s;
+}
+.sidebar__collapse:hover { background: rgba(241, 245, 249, 0.9); color: var(--ink); }
+
+/* User Profile Footer */
+.sidebar__user {
+  padding: 12px 14px;
   border-top: 1px solid var(--line);
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 10px;
+  background: #FFFFFF;
 }
-.userbadge { display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1; }
-.userbadge .avatar,
-.userbadge__avatar {
-  width: 34px; height: 34px; border-radius: 9px;
+.sidebar__user .avatar {
+  width: 32px; height: 32px; border-radius: 8px;
   background: linear-gradient(135deg, var(--sapphire), var(--cyan));
-  color: #fff; font-weight: 800; font-size: 13px; display: grid; place-items: center;
+  color: #fff; font-weight: 800; font-size: 12px; display: grid; place-items: center;
   flex-shrink: 0;
 }
-.userbadge .info,
-.userbadge__info { min-width: 0; display: flex; flex-direction: column; }
-.userbadge .email,
-.userbadge__email { font-size: 12.5px; font-weight: 700; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.userbadge .role,
-.userbadge__role { font-size: 11px; color: var(--faint); text-transform: capitalize; }
-.collapser {
+.sidebar__user .uinfo { min-width: 0; flex: 1; display: flex; flex-direction: column; }
+.sidebar__user .uname { font-size: 12px; font-weight: 700; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sidebar__user .urole { font-size: 10.5px; color: var(--faint); text-transform: capitalize; }
+.sidebar__user .iconbtn {
   background: transparent; border: 1px solid var(--line); border-radius: 6px;
   padding: 5px; color: var(--muted); cursor: pointer; display: grid; place-items: center;
   transition: all 0.15s;
 }
-.collapser:hover { background: rgba(241, 245, 249, 0.9); color: var(--ink); }
+.sidebar__user .iconbtn:hover { background: var(--weak-bg); border-color: var(--weak-border); color: var(--weak); }
+
+.dash-empty__actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 20px; }
+
 
 /* ==========================================================================
    APP CONTENT CONTAINER & DASHBOARD
