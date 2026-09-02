@@ -109,20 +109,31 @@ def upload_resumes(
         finally:
             file.file.close()
 
-    db.commit()
-    for cand in created:
-        db.refresh(cand)
+    try:
+        db.commit()
+        for cand in created:
+            db.refresh(cand)
+    except Exception as exc:
+        logger.exception("Database commit failed during resume upload: %s", exc)
+        db.rollback()
+        raise HTTPException(
+            status_code=500,
+            detail=f"Database error while saving candidate: {exc}",
+        )
 
     # Persist the raw resume text + extraction artifact to MongoDB (if enabled).
-    store = get_document_store()
-    for cand, raw_text, profile_doc, filename in artifacts:
-        store.save(
-            candidate_id=cand.id,
-            job_id=cand.job_id,
-            filename=filename,
-            raw_text=raw_text,
-            profile=profile_doc,
-        )
+    try:
+        store = get_document_store()
+        for cand, raw_text, profile_doc, filename in artifacts:
+            store.save(
+                candidate_id=cand.id,
+                job_id=cand.job_id,
+                filename=filename,
+                raw_text=raw_text,
+                profile=profile_doc,
+            )
+    except Exception as exc:
+        logger.warning("Document store save skipped due to error: %s", exc)
 
     if not created and errors:
         # Nothing succeeded — surface a 422 with the per-file errors.
@@ -131,7 +142,16 @@ def upload_resumes(
             detail={"created": [], "errors": [e.model_dump() for e in errors]},
         )
 
+    try:
+        created_out = [CandidateOut.model_validate(c) for c in created]
+    except Exception as exc:
+        logger.exception("Failed to serialize created candidates: %s", exc)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error serializing candidate output: {exc}",
+        )
+
     return UploadResponse(
-        created=[CandidateOut.model_validate(c) for c in created],
+        created=created_out,
         errors=errors,
     )
