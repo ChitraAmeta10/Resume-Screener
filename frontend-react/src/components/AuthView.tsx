@@ -52,7 +52,7 @@ export default function AuthView({ onAuthed }: Props) {
   }
 
   const fillDemo = () => {
-    setEmail("recruiter@email.com");
+    setEmail("demo.recruiter@example.com");
     setPassword("password1");
     setMsg("");
   };
