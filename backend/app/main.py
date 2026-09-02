@@ -58,6 +58,25 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request, exc: Exception):
+    logger.exception("Global unhandled exception on %s %s: %s", request.method, request.url.path, exc)
+    from fastapi.responses import JSONResponse
+
+    origin = request.headers.get("origin", "*")
+    return JSONResponse(
+        status_code=500,
+        content={"detail": f"Server error: {str(exc) or repr(exc)}"},
+        headers={
+            "Access-Control-Allow-Origin": origin if origin else "*",
+            "Access-Control-Allow-Credentials": "true",
+            "Access-Control-Allow-Methods": "*",
+            "Access-Control-Allow-Headers": "*",
+        },
+    )
+
+
 app.include_router(api_router, prefix=settings.API_V1_PREFIX)
 
 # Frontend. Prefer the built React app (frontend-react/dist); fall back to the
