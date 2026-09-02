@@ -8,45 +8,45 @@ function createResumeTexture(candidateName: string, role: string, score: string,
   const ctx = canvas.getContext("2d");
   if (!ctx) return new THREE.CanvasTexture(canvas);
 
-  // Background Card
-  ctx.fillStyle = "rgba(15, 23, 42, 0.92)";
+  // Clean White Ceramic Background
+  ctx.fillStyle = "#FFFFFF";
   ctx.roundRect(0, 0, 512, 700, 24);
   ctx.fill();
 
-  // Glass Border
-  ctx.strokeStyle = "rgba(56, 189, 248, 0.35)";
+  // Crisp Hairline Silver Border
+  ctx.strokeStyle = "rgba(203, 213, 225, 0.9)";
   ctx.lineWidth = 4;
   ctx.roundRect(2, 2, 508, 696, 24);
   ctx.stroke();
 
-  // Top Header Bar
-  ctx.fillStyle = "rgba(56, 189, 248, 0.15)";
+  // Top Header Area
+  ctx.fillStyle = "rgba(241, 245, 249, 0.85)";
   ctx.roundRect(24, 24, 464, 90, 16);
   ctx.fill();
 
   // Avatar Circle
-  ctx.fillStyle = "#38BDF8";
+  ctx.fillStyle = "#2563EB";
   ctx.beginPath();
   ctx.arc(68, 69, 28, 0, Math.PI * 2);
   ctx.fill();
 
-  ctx.fillStyle = "#0B0F19";
-  ctx.font = "bold 24px Inter, sans-serif";
+  ctx.fillStyle = "#FFFFFF";
+  ctx.font = "bold 22px -apple-system, BlinkMacSystemFont, 'Inter', sans-serif";
   ctx.textAlign = "center";
   ctx.fillText(candidateName.slice(0, 2).toUpperCase(), 68, 77);
 
-  // Name & Role
-  ctx.fillStyle = "#FFFFFF";
-  ctx.font = "bold 24px Inter, sans-serif";
+  // Candidate Name & Role
+  ctx.fillStyle = "#0F172A";
+  ctx.font = "bold 24px -apple-system, BlinkMacSystemFont, 'Inter', sans-serif";
   ctx.textAlign = "left";
   ctx.fillText(candidateName, 112, 58);
 
-  ctx.fillStyle = "#94A3B8";
-  ctx.font = "16px Inter, sans-serif";
+  ctx.fillStyle = "#64748B";
+  ctx.font = "16px -apple-system, BlinkMacSystemFont, 'Inter', sans-serif";
   ctx.fillText(role, 112, 86);
 
-  // Score Pill
-  ctx.fillStyle = "#10B981";
+  // Score Pill (Emerald)
+  ctx.fillStyle = "#059669";
   ctx.roundRect(390, 44, 82, 38, 10);
   ctx.fill();
   ctx.fillStyle = "#FFFFFF";
@@ -57,29 +57,29 @@ function createResumeTexture(candidateName: string, role: string, score: string,
   // Skills Row
   let chipX = 24;
   skills.forEach((skill) => {
-    ctx.fillStyle = "rgba(59, 130, 246, 0.25)";
+    ctx.fillStyle = "rgba(239, 246, 255, 0.95)";
     ctx.roundRect(chipX, 134, 100, 32, 8);
     ctx.fill();
-    ctx.strokeStyle = "rgba(59, 130, 246, 0.4)";
+    ctx.strokeStyle = "rgba(191, 219, 254, 0.9)";
     ctx.lineWidth = 1.5;
     ctx.stroke();
 
-    ctx.fillStyle = "#BAE6FD";
-    ctx.font = "600 14px Inter, sans-serif";
+    ctx.fillStyle = "#1D4ED8";
+    ctx.font = "600 14px -apple-system, BlinkMacSystemFont, 'Inter', sans-serif";
     ctx.textAlign = "center";
     ctx.fillText(skill, chipX + 50, 155);
     chipX += 114;
   });
 
-  // Simulated Resume Wireframe Paragraph Lines
+  // Wireframe Paragraph Lines
   const lineYStarts = [190, 290, 410, 530];
   lineYStarts.forEach((startY) => {
-    ctx.fillStyle = "rgba(56, 189, 248, 0.3)";
+    ctx.fillStyle = "rgba(37, 99, 235, 0.35)";
     ctx.roundRect(24, startY, 140, 12, 4);
     ctx.fill();
 
     for (let i = 0; i < 3; i++) {
-      ctx.fillStyle = "rgba(255, 255, 255, 0.12)";
+      ctx.fillStyle = "rgba(148, 163, 184, 0.35)";
       const width = i === 2 ? 280 : 464;
       ctx.roundRect(24, startY + 24 + i * 20, width, 8, 4);
       ctx.fill();
@@ -98,19 +98,19 @@ function createSkillPillTexture(text: string) {
   const ctx = canvas.getContext("2d");
   if (!ctx) return new THREE.CanvasTexture(canvas);
 
-  ctx.fillStyle = "rgba(11, 15, 25, 0.85)";
+  ctx.fillStyle = "#FFFFFF";
   ctx.roundRect(4, 4, 248, 88, 20);
   ctx.fill();
 
-  ctx.strokeStyle = "#38BDF8";
+  ctx.strokeStyle = "rgba(37, 99, 235, 0.6)";
   ctx.lineWidth = 3;
   ctx.roundRect(4, 4, 248, 88, 20);
   ctx.stroke();
 
-  ctx.fillStyle = "#FFFFFF";
-  ctx.font = "bold 32px Inter, sans-serif";
+  ctx.fillStyle = "#1D4ED8";
+  ctx.font = "bold 28px -apple-system, BlinkMacSystemFont, 'Inter', sans-serif";
   ctx.textAlign = "center";
-  ctx.fillText(text, 128, 58);
+  ctx.fillText(text, 128, 56);
 
   const texture = new THREE.CanvasTexture(canvas);
   texture.needsUpdate = true;
@@ -135,7 +135,7 @@ export default function ThreeScene() {
     const container = mountRef.current;
     if (!container) return;
 
-    // 1. Three.js Scene Setup
+    // 1. Scene Setup
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 1000);
     camera.position.z = 20;
@@ -145,15 +145,15 @@ export default function ThreeScene() {
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     container.appendChild(renderer.domElement);
 
-    // 2. Ambient & Point Lighting
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.9);
+    // 2. Bright Ambient & Soft Directional Light
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1.2);
     scene.add(ambientLight);
 
-    const pointLight = new THREE.PointLight(0x38bdf8, 3, 60);
+    const pointLight = new THREE.PointLight(0x3b82f6, 2.5, 60);
     pointLight.position.set(0, 10, 15);
     scene.add(pointLight);
 
-    // 3. Floating 3D Resume Sheets
+    // 3. Floating 3D Ceramic Resume Sheets
     const resumeGroup = new THREE.Group();
     const resumeMeshes: THREE.Mesh[] = [];
 
@@ -164,22 +164,21 @@ export default function ThreeScene() {
       const mat = new THREE.MeshBasicMaterial({
         map: texture,
         transparent: true,
-        opacity: 0.82,
+        opacity: 0.9,
         side: THREE.DoubleSide,
       });
 
       const mesh = new THREE.Mesh(sheetGeo, mat);
       
-      // Distribute in 3D cloud
       const angle = (i / RESUME_DATA.length) * Math.PI * 2;
       const radius = 11 + Math.random() * 5;
       mesh.position.x = Math.cos(angle) * radius + (Math.random() - 0.5) * 3;
       mesh.position.y = (Math.random() - 0.5) * 14;
       mesh.position.z = -2 + (Math.random() - 0.5) * 8;
 
-      mesh.rotation.x = (Math.random() - 0.5) * 0.4;
-      mesh.rotation.y = (Math.random() - 0.5) * 0.6;
-      mesh.rotation.z = (Math.random() - 0.5) * 0.3;
+      mesh.rotation.x = (Math.random() - 0.5) * 0.35;
+      mesh.rotation.y = (Math.random() - 0.5) * 0.5;
+      mesh.rotation.z = (Math.random() - 0.5) * 0.25;
 
       resumeMeshes.push(mesh);
       resumeGroup.add(mesh);
@@ -192,12 +191,12 @@ export default function ThreeScene() {
     const skillMeshes: THREE.Mesh[] = [];
     const pillGeo = new THREE.PlaneGeometry(3.2, 1.2);
 
-    SKILL_TOKENS.forEach((token, i) => {
+    SKILL_TOKENS.forEach((token) => {
       const texture = createSkillPillTexture(token);
       const mat = new THREE.MeshBasicMaterial({
         map: texture,
         transparent: true,
-        opacity: 0.75,
+        opacity: 0.85,
         side: THREE.DoubleSide,
       });
 
@@ -214,19 +213,19 @@ export default function ThreeScene() {
 
     scene.add(skillGroup);
 
-    // 5. 3D Laser Scanning Beams
-    const beamGeo = new THREE.PlaneGeometry(36, 0.08);
+    // 5. Soft Sapphire Laser Scan Line
+    const beamGeo = new THREE.PlaneGeometry(36, 0.06);
     const beamMat = new THREE.MeshBasicMaterial({
-      color: 0x38bdf8,
+      color: 0x2563eb,
       transparent: true,
-      opacity: 0.6,
+      opacity: 0.45,
       side: THREE.DoubleSide,
     });
     const laserBeam = new THREE.Mesh(beamGeo, beamMat);
     laserBeam.position.z = 1;
     scene.add(laserBeam);
 
-    // 6. Mouse & Scroll Interaction
+    // 6. Smooth Mouse & Scroll Tracking
     let mouseX = 0;
     let mouseY = 0;
     let targetX = 0;
@@ -260,7 +259,6 @@ export default function ThreeScene() {
       animId = requestAnimationFrame(animate);
       const elapsed = clock.getElapsedTime();
 
-      // Camera Damping
       targetX += (mouseX - targetX) * 0.04;
       targetY += (mouseY - targetY) * 0.04;
 
@@ -268,20 +266,17 @@ export default function ThreeScene() {
       camera.position.y = -targetY * 6 - scrollY * 2;
       camera.lookAt(0, -scrollY * 1.5, 0);
 
-      // Gentle floating physics for resume sheets
       resumeMeshes.forEach((mesh, idx) => {
         mesh.position.y += Math.sin(elapsed * 1.2 + idx) * 0.008;
         mesh.rotation.y += 0.0015;
         mesh.rotation.z += Math.cos(elapsed * 0.8 + idx) * 0.001;
       });
 
-      // Gentle floating for skill tokens
       skillMeshes.forEach((mesh, idx) => {
         mesh.position.y += Math.cos(elapsed * 1.4 + idx) * 0.009;
         mesh.position.x += Math.sin(elapsed * 0.9 + idx) * 0.005;
       });
 
-      // Animated Laser Scan sweep
       laserBeam.position.y = Math.sin(elapsed * 1.8) * 10;
 
       renderer.render(scene, camera);
