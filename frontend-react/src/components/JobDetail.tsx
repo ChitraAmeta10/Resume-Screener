@@ -3,6 +3,7 @@ import { api, ApiError, errorDetail } from "../api";
 import { useToast } from "../toast";
 import { band, bandLabel, fmtW } from "../utils";
 import { IconUpload, IconPeople } from "../icons";
+import { use3DTilt } from "../hooks/use3DTilt";
 import StageSelect from "./StageSelect";
 import type {
   Job,
@@ -176,7 +177,7 @@ export default function JobDetail({ job }: Props) {
           <span className="hint">PDF · DOCX · TXT · up to 10 files</span>
         </div>
         <div
-          className={"drop" + (dragging ? " drag" : "")}
+          className={"drop" + (dragging ? " drag" : "") + (uploading ? " scanning" : "")}
           onClick={(e) => {
             const t = e.target as HTMLElement;
             if (t.classList.contains("drop") || t.tagName === "P" || t.classList.contains("sub"))
@@ -390,6 +391,8 @@ function CandidateCard({
   const cand = rc.candidate;
   const sc = rc.score;
 
+  const tilt = use3DTilt({ maxRotation: 6, scale: 1.01 });
+
   async function toggleDoc() {
     if (doc) {
       setDoc(null);
@@ -413,7 +416,16 @@ function CandidateCard({
   const skills = cand.skills || [];
 
   return (
-    <div className={"cand" + (rank === 0 ? " top" : "")}>
+    <div
+      ref={tilt.ref}
+      style={{
+        ...tilt.style,
+        animationDelay: `${Math.min(rank * 0.08, 0.8)}s`,
+      }}
+      {...tilt.bind}
+      className={"cand" + (rank === 0 ? " top" : "")}
+    >
+      <div className="cand__glare" style={tilt.glareStyle} />
       <div className="cand__main">
         <div className="cand__num">{String(rank + 1).padStart(2, "0")}</div>
         <div className="cand__id">

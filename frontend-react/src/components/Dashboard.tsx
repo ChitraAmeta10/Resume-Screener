@@ -10,6 +10,7 @@ import {
   IconGauge,
   IconStar,
 } from "../icons";
+import { use3DTilt } from "../hooks/use3DTilt";
 import type { Dashboard as DashboardData, User } from "../types";
 
 interface Props {
@@ -246,8 +247,16 @@ function Kpi({
   label: string;
   sub?: string;
 }) {
+  const tilt = use3DTilt({ maxRotation: 8, scale: 1.02 });
+
   return (
-    <div className={"kpi kpi--" + accent}>
+    <div
+      ref={tilt.ref}
+      style={tilt.style}
+      {...tilt.bind}
+      className={"kpi kpi--" + accent}
+    >
+      <div className="cand__glare" style={tilt.glareStyle} />
       <div className="kpi__top">
         <span className="kpi__label">{label}</span>
         <span className="kpi__icon">{icon}</span>

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { api, errorDetail } from "../api";
 import { useToast } from "../toast";
 import { band, STAGES } from "../utils";
+import { use3DTilt } from "../hooks/use3DTilt";
 import type { PooledCandidate, Stage } from "../types";
 
 interface Props {
@@ -74,35 +75,14 @@ export default function PipelineBoard({ onOpenJob }: Props) {
                   {items.length === 0 ? (
                     <div className="board__empty">—</div>
                   ) : (
-                    items.map((r) => {
-                      const b = band(r.final_score || 0);
-                      return (
-                        <div className="boardcard" key={r.candidate_id}>
-                          <div className="boardcard__top">
-                            <span className="boardcard__name" onClick={() => onOpenJob(r.job_id)}>
-                              {r.full_name}
-                            </span>
-                            <span className="boardcard__score" style={{ color: `var(--${b})` }}>
-                              {(r.final_score || 0).toFixed(0)}
-                            </span>
-                          </div>
-                          <div className="boardcard__job" onClick={() => onOpenJob(r.job_id)}>
-                            {r.job_title}
-                          </div>
-                          <select
-                            className={"stagesel stage-" + r.status}
-                            value={r.status}
-                            onChange={(e) => move(r.candidate_id, e.target.value as Stage)}
-                          >
-                            {STAGES.map((s) => (
-                              <option key={s.v} value={s.v}>
-                                {s.t}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                      );
-                    })
+                    items.map((r) => (
+                      <BoardCard
+                        key={r.candidate_id}
+                        row={r}
+                        onOpenJob={onOpenJob}
+                        onMove={move}
+                      />
+                    ))
                   )}
                 </div>
               </div>
@@ -111,5 +91,50 @@ export default function PipelineBoard({ onOpenJob }: Props) {
         </div>
       )}
     </>
+  );
+}
+
+function BoardCard({
+  row: r,
+  onOpenJob,
+  onMove,
+}: {
+  row: PooledCandidate;
+  onOpenJob: (id: string) => void;
+  onMove: (id: string, s: Stage) => void;
+}) {
+  const tilt = use3DTilt({ maxRotation: 6, scale: 1.02 });
+  const b = band(r.final_score || 0);
+
+  return (
+    <div
+      ref={tilt.ref}
+      style={tilt.style}
+      {...tilt.bind}
+      className="boardcard"
+    >
+      <div className="boardcard__top">
+        <span className="boardcard__name" onClick={() => onOpenJob(r.job_id)}>
+          {r.full_name}
+        </span>
+        <span className="boardcard__score" style={{ color: `var(--${b})` }}>
+          {(r.final_score || 0).toFixed(0)}
+        </span>
+      </div>
+      <div className="boardcard__job" onClick={() => onOpenJob(r.job_id)}>
+        {r.job_title}
+      </div>
+      <select
+        className={"stagesel stage-" + r.status}
+        value={r.status}
+        onChange={(e) => onMove(r.candidate_id, e.target.value as Stage)}
+      >
+        {STAGES.map((s) => (
+          <option key={s.v} value={s.v}>
+            {s.t}
+          </option>
+        ))}
+      </select>
+    </div>
   );
 }
