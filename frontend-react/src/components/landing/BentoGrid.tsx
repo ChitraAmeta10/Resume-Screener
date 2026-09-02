@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { use3DTilt } from "../../hooks/use3DTilt";
-import { IconSparkle, IconStack, IconGauge, IconPeople, IconBriefcase } from "../../icons";
+import { IconSparkle, IconStack, IconGauge, IconBriefcase } from "../../icons";
 
 export default function BentoGrid() {
   const [sliderSim, setSliderSim] = useState(40);
@@ -11,24 +11,22 @@ export default function BentoGrid() {
 
   const simWeight = sliderSim / 100;
   const llmWeight = (100 - sliderSim) / 100;
-  const sampleSim = 88.0;
-  const sampleLLM = 94.0;
-  const calculatedScore = (simWeight * sampleSim + llmWeight * sampleLLM).toFixed(1);
+  const calculatedScore = (simWeight * 88.0 + llmWeight * 96.0).toFixed(1);
 
   return (
     <section id="bento" className="lbento">
       <div className="lsection-head">
         <span className="lsection-eyebrow">
-          <IconSparkle size={13} /> Architectural Excellence
+          <IconSparkle size={13} /> Features
         </span>
-        <h2 className="lsection-title">Engineered for Accuracy, Speed & Scale</h2>
+        <h2 className="lsection-title">Speed, Accuracy & Scale</h2>
         <p className="lsection-sub">
-          Explore the core innovations that make Resume Screener faster, more reliable, and completely customizable.
+          Architected for high-velocity hiring teams.
         </p>
       </div>
 
       <div className="lbento__grid">
-        {/* Bento 1: Dynamic Weighting Simulator (Large) */}
+        {/* Bento 1: Dynamic Weighting */}
         <div
           ref={tilt1.ref}
           style={tilt1.style}
@@ -36,15 +34,15 @@ export default function BentoGrid() {
           className="lbento__item lbento__item--wide"
         >
           <div className="cand__glare" style={tilt1.glareStyle} />
-          <div className="lbento__icon"><IconGauge size={22} /></div>
-          <h3>Dynamic Dual-Engine Weight Physics</h3>
+          <div className="lbento__icon"><IconGauge size={20} /></div>
+          <h3>Custom Scoring Weights</h3>
           <p>
-            Tune the exact balance between statistical token similarity and deep contextual AI judgment in real time with interactive sliders.
+            Adjust the exact ratio between mathematical token similarity and AI reasoning in real time.
           </p>
 
           <div className="lbento__sim-box">
             <div className="lbento__sim-controls">
-              <label>Weight Balance</label>
+              <label>Weight Ratio</label>
               <input
                 type="range"
                 min={0}
@@ -54,19 +52,19 @@ export default function BentoGrid() {
                 onChange={(e) => setSliderSim(+e.target.value)}
               />
               <div className="lbento__sim-vals">
-                <span>Similarity: <b>{Math.round(simWeight * 100)}%</b></span>
-                <span>AI Judgment: <b>{Math.round(llmWeight * 100)}%</b></span>
+                <span>Vector: <b>{sliderSim}%</b></span>
+                <span>AI Model: <b>{100 - sliderSim}%</b></span>
               </div>
             </div>
 
             <div className="lbento__sim-result">
               <div className="n">{calculatedScore}</div>
-              <div className="l">Live Calculated Fit</div>
+              <div className="l">Calculated Fit</div>
             </div>
           </div>
         </div>
 
-        {/* Bento 2: Direct XML & Memory Efficiency */}
+        {/* Bento 2: Sub-Second Parser */}
         <div
           ref={tilt2.ref}
           style={tilt2.style}
@@ -74,12 +72,12 @@ export default function BentoGrid() {
           className="lbento__item"
         >
           <div className="cand__glare" style={tilt2.glareStyle} />
-          <div className="lbento__icon"><IconSparkle size={22} /></div>
-          <h3>Zero-Memory XML Parser</h3>
+          <div className="lbento__icon"><IconSparkle size={20} /></div>
+          <h3>0.002s XML Streamer</h3>
           <p>
-            Direct XML streaming parses complex `.docx` and `.pdf` files in <b>0.002 seconds</b> with less than 1MB RAM, preventing container crashes.
+            Lightweight streaming XML parser with zero memory spikes and instant table extraction.
           </p>
-          <div className="lbento__speed-tag">⚡ 500x faster than legacy parsers</div>
+          <div className="lbento__speed-tag">⚡ 500x Faster</div>
         </div>
 
         {/* Bento 3: Polyglot Persistence */}
@@ -90,19 +88,18 @@ export default function BentoGrid() {
           className="lbento__item"
         >
           <div className="cand__glare" style={tilt3.glareStyle} />
-          <div className="lbento__icon"><IconStack size={22} /></div>
-          <h3>Polyglot Persistence</h3>
+          <div className="lbento__icon"><IconStack size={20} /></div>
+          <h3>Polyglot Storage</h3>
           <p>
-            Structured hiring tables in <b>PostgreSQL</b> + raw unconstrained resume payloads stored in <b>MongoDB Atlas</b> for full auditability.
+            Relational candidate metadata in <b>PostgreSQL</b> + raw unconstrained resume payloads in <b>MongoDB</b>.
           </p>
           <div className="lbento__chips">
             <span className="chip">PostgreSQL</span>
             <span className="chip">MongoDB</span>
-            <span className="chip">Redis Cache</span>
           </div>
         </div>
 
-        {/* Bento 4: Privacy & Offline Reliability */}
+        {/* Bento 4: Privacy & Offline Mode */}
         <div
           ref={tilt4.ref}
           style={tilt4.style}
@@ -110,15 +107,15 @@ export default function BentoGrid() {
           className="lbento__item lbento__item--wide"
         >
           <div className="cand__glare" style={tilt4.glareStyle} />
-          <div className="lbento__icon"><IconBriefcase size={22} /></div>
-          <h3>100% Offline Capability & Zero Vendor Lock-in</h3>
+          <div className="lbento__icon"><IconBriefcase size={20} /></div>
+          <h3>100% Offline Ready · Zero Data Leakage</h3>
           <p>
-            Works with OpenAI GPT-4o, Anthropic Claude 3.5 Sonnet, or completely offline with deterministic heuristic algorithms when API keys or quotas are exhausted.
+            Compatible with OpenAI GPT-4o, Claude 3.5 Sonnet, or deterministic offline heuristics for zero cloud dependencies.
           </p>
           <div className="lbento__providers">
-            <span className="provider-badge active">OpenAI GPT-4o</span>
-            <span className="provider-badge active">Claude Sonnet 3.5</span>
-            <span className="provider-badge active">Offline Heuristic Fallback</span>
+            <span className="provider-badge active">GPT-4o</span>
+            <span className="provider-badge active">Claude Sonnet</span>
+            <span className="provider-badge active">Offline Heuristic Engine</span>
           </div>
         </div>
       </div>

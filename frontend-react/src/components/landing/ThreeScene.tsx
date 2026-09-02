@@ -1,6 +1,133 @@
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
 
+function createResumeTexture(candidateName: string, role: string, score: string, skills: string[]) {
+  const canvas = document.createElement("canvas");
+  canvas.width = 512;
+  canvas.height = 700;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return new THREE.CanvasTexture(canvas);
+
+  // Background Card
+  ctx.fillStyle = "rgba(15, 23, 42, 0.92)";
+  ctx.roundRect(0, 0, 512, 700, 24);
+  ctx.fill();
+
+  // Glass Border
+  ctx.strokeStyle = "rgba(56, 189, 248, 0.35)";
+  ctx.lineWidth = 4;
+  ctx.roundRect(2, 2, 508, 696, 24);
+  ctx.stroke();
+
+  // Top Header Bar
+  ctx.fillStyle = "rgba(56, 189, 248, 0.15)";
+  ctx.roundRect(24, 24, 464, 90, 16);
+  ctx.fill();
+
+  // Avatar Circle
+  ctx.fillStyle = "#38BDF8";
+  ctx.beginPath();
+  ctx.arc(68, 69, 28, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.fillStyle = "#0B0F19";
+  ctx.font = "bold 24px Inter, sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText(candidateName.slice(0, 2).toUpperCase(), 68, 77);
+
+  // Name & Role
+  ctx.fillStyle = "#FFFFFF";
+  ctx.font = "bold 24px Inter, sans-serif";
+  ctx.textAlign = "left";
+  ctx.fillText(candidateName, 112, 58);
+
+  ctx.fillStyle = "#94A3B8";
+  ctx.font = "16px Inter, sans-serif";
+  ctx.fillText(role, 112, 86);
+
+  // Score Pill
+  ctx.fillStyle = "#10B981";
+  ctx.roundRect(390, 44, 82, 38, 10);
+  ctx.fill();
+  ctx.fillStyle = "#FFFFFF";
+  ctx.font = "bold 18px monospace";
+  ctx.textAlign = "center";
+  ctx.fillText(score, 431, 69);
+
+  // Skills Row
+  let chipX = 24;
+  skills.forEach((skill) => {
+    ctx.fillStyle = "rgba(59, 130, 246, 0.25)";
+    ctx.roundRect(chipX, 134, 100, 32, 8);
+    ctx.fill();
+    ctx.strokeStyle = "rgba(59, 130, 246, 0.4)";
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    ctx.fillStyle = "#BAE6FD";
+    ctx.font = "600 14px Inter, sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText(skill, chipX + 50, 155);
+    chipX += 114;
+  });
+
+  // Simulated Resume Wireframe Paragraph Lines
+  const lineYStarts = [190, 290, 410, 530];
+  lineYStarts.forEach((startY) => {
+    ctx.fillStyle = "rgba(56, 189, 248, 0.3)";
+    ctx.roundRect(24, startY, 140, 12, 4);
+    ctx.fill();
+
+    for (let i = 0; i < 3; i++) {
+      ctx.fillStyle = "rgba(255, 255, 255, 0.12)";
+      const width = i === 2 ? 280 : 464;
+      ctx.roundRect(24, startY + 24 + i * 20, width, 8, 4);
+      ctx.fill();
+    }
+  });
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.needsUpdate = true;
+  return texture;
+}
+
+function createSkillPillTexture(text: string) {
+  const canvas = document.createElement("canvas");
+  canvas.width = 256;
+  canvas.height = 96;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return new THREE.CanvasTexture(canvas);
+
+  ctx.fillStyle = "rgba(11, 15, 25, 0.85)";
+  ctx.roundRect(4, 4, 248, 88, 20);
+  ctx.fill();
+
+  ctx.strokeStyle = "#38BDF8";
+  ctx.lineWidth = 3;
+  ctx.roundRect(4, 4, 248, 88, 20);
+  ctx.stroke();
+
+  ctx.fillStyle = "#FFFFFF";
+  ctx.font = "bold 32px Inter, sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText(text, 128, 58);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.needsUpdate = true;
+  return texture;
+}
+
+const RESUME_DATA = [
+  { name: "Chitra Ameta", role: "AI Backend Lead", score: "96%", skills: ["Python", "FastAPI", "SQL", "Docker"] },
+  { name: "Alex Rivera", role: "Full-Stack Dev", score: "92%", skills: ["React", "TypeScript", "Node", "Redis"] },
+  { name: "Elena Rostova", role: "ML Engineer", score: "95%", skills: ["PyTorch", "Python", "LLMs", "AWS"] },
+  { name: "David Kim", role: "Python Core Dev", score: "89%", skills: ["Django", "Postgres", "GCP", "CI/CD"] },
+  { name: "Sarah Chen", role: "Cloud Architect", score: "91%", skills: ["K8s", "Docker", "Terraform", "Go"] },
+  { name: "Marcus Vance", role: "Senior Engineer", score: "88%", skills: ["Python", "FastAPI", "Next.js", "SQL"] },
+];
+
+const SKILL_TOKENS = ["Python", "FastAPI", "PostgreSQL", "React", "Docker", "RAG & LLM", "99.4% Match", "Sub-Second"];
+
 export default function ThreeScene() {
   const mountRef = useRef<HTMLDivElement>(null);
 
@@ -8,142 +135,98 @@ export default function ThreeScene() {
     const container = mountRef.current;
     if (!container) return;
 
-    // 1. Scene, Camera, Renderer
+    // 1. Three.js Scene Setup
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(
-      60,
-      window.innerWidth / window.innerHeight,
-      0.1,
-      1000
-    );
-    camera.position.z = 18;
-    camera.position.y = 3;
+    const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.position.z = 20;
 
-    const renderer = new THREE.WebGLRenderer({
-      alpha: true,
-      antialias: true,
-      powerPreference: "high-performance",
-    });
+    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     container.appendChild(renderer.domElement);
 
     // 2. Ambient & Point Lighting
-    const ambientLight = new THREE.AmbientLight(0x38bdf8, 0.8);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.9);
     scene.add(ambientLight);
 
-    const pointLight1 = new THREE.PointLight(0x3b82f6, 4, 50);
-    pointLight1.position.set(10, 10, 10);
-    scene.add(pointLight1);
+    const pointLight = new THREE.PointLight(0x38bdf8, 3, 60);
+    pointLight.position.set(0, 10, 15);
+    scene.add(pointLight);
 
-    const pointLight2 = new THREE.PointLight(0x10b981, 3, 50);
-    pointLight2.position.set(-10, -5, 5);
-    scene.add(pointLight2);
+    // 3. Floating 3D Resume Sheets
+    const resumeGroup = new THREE.Group();
+    const resumeMeshes: THREE.Mesh[] = [];
 
-    // 3. Central 3D Holographic Crystal (Icosahedron Core)
-    const coreGeo = new THREE.IcosahedronGeometry(3.6, 1);
-    const coreMat = new THREE.MeshStandardMaterial({
-      color: 0x1d4ed8,
-      emissive: 0x0284c7,
-      emissiveIntensity: 0.6,
-      wireframe: true,
-      roughness: 0.2,
-      metalness: 0.9,
+    const sheetGeo = new THREE.PlaneGeometry(5.1, 7.0);
+
+    RESUME_DATA.forEach((data, i) => {
+      const texture = createResumeTexture(data.name, data.role, data.score, data.skills);
+      const mat = new THREE.MeshBasicMaterial({
+        map: texture,
+        transparent: true,
+        opacity: 0.82,
+        side: THREE.DoubleSide,
+      });
+
+      const mesh = new THREE.Mesh(sheetGeo, mat);
+      
+      // Distribute in 3D cloud
+      const angle = (i / RESUME_DATA.length) * Math.PI * 2;
+      const radius = 11 + Math.random() * 5;
+      mesh.position.x = Math.cos(angle) * radius + (Math.random() - 0.5) * 3;
+      mesh.position.y = (Math.random() - 0.5) * 14;
+      mesh.position.z = -2 + (Math.random() - 0.5) * 8;
+
+      mesh.rotation.x = (Math.random() - 0.5) * 0.4;
+      mesh.rotation.y = (Math.random() - 0.5) * 0.6;
+      mesh.rotation.z = (Math.random() - 0.5) * 0.3;
+
+      resumeMeshes.push(mesh);
+      resumeGroup.add(mesh);
     });
-    const coreMesh = new THREE.Mesh(coreGeo, coreMat);
-    coreMesh.position.set(0, 1, 0);
-    scene.add(coreMesh);
 
-    // Inner Glowing Core Sphere
-    const innerGeo = new THREE.SphereGeometry(2.2, 32, 32);
-    const innerMat = new THREE.MeshBasicMaterial({
+    scene.add(resumeGroup);
+
+    // 4. Floating 3D Skill Pills
+    const skillGroup = new THREE.Group();
+    const skillMeshes: THREE.Mesh[] = [];
+    const pillGeo = new THREE.PlaneGeometry(3.2, 1.2);
+
+    SKILL_TOKENS.forEach((token, i) => {
+      const texture = createSkillPillTexture(token);
+      const mat = new THREE.MeshBasicMaterial({
+        map: texture,
+        transparent: true,
+        opacity: 0.75,
+        side: THREE.DoubleSide,
+      });
+
+      const mesh = new THREE.Mesh(pillGeo, mat);
+      mesh.position.x = (Math.random() - 0.5) * 26;
+      mesh.position.y = (Math.random() - 0.5) * 18;
+      mesh.position.z = 2 + (Math.random() - 0.5) * 6;
+
+      mesh.rotation.z = (Math.random() - 0.5) * 0.2;
+
+      skillMeshes.push(mesh);
+      skillGroup.add(mesh);
+    });
+
+    scene.add(skillGroup);
+
+    // 5. 3D Laser Scanning Beams
+    const beamGeo = new THREE.PlaneGeometry(36, 0.08);
+    const beamMat = new THREE.MeshBasicMaterial({
       color: 0x38bdf8,
-      wireframe: false,
       transparent: true,
-      opacity: 0.35,
+      opacity: 0.6,
+      side: THREE.DoubleSide,
     });
-    const innerMesh = new THREE.Mesh(innerGeo, innerMat);
-    coreMesh.add(innerMesh);
+    const laserBeam = new THREE.Mesh(beamGeo, beamMat);
+    laserBeam.position.z = 1;
+    scene.add(laserBeam);
 
-    // Outer Orbiting Ring 1
-    const ring1Geo = new THREE.TorusGeometry(5.2, 0.04, 16, 100);
-    const ring1Mat = new THREE.MeshBasicMaterial({
-      color: 0x60a5fa,
-      transparent: true,
-      opacity: 0.7,
-    });
-    const ring1 = new THREE.Mesh(ring1Geo, ring1Mat);
-    ring1.rotation.x = Math.PI / 3;
-    scene.add(ring1);
-
-    // Outer Orbiting Ring 2
-    const ring2Geo = new THREE.TorusGeometry(6.4, 0.03, 16, 100);
-    const ring2Mat = new THREE.MeshBasicMaterial({
-      color: 0x34d399,
-      transparent: true,
-      opacity: 0.5,
-    });
-    const ring2 = new THREE.Mesh(ring2Geo, ring2Mat);
-    ring2.rotation.y = Math.PI / 4;
-    scene.add(ring2);
-
-    // 4. 3D Particle Galaxy / Cosmic Point Cloud (2,000 Particles)
-    const particleCount = 2000;
-    const particleGeo = new THREE.BufferGeometry();
-    const positions = new Float32Array(particleCount * 3);
-    const colors = new Float32Array(particleCount * 3);
-
-    const colorChoices = [
-      new THREE.Color(0x38bdf8),
-      new THREE.Color(0x3b82f6),
-      new THREE.Color(0x10b981),
-      new THREE.Color(0xa78bfa),
-    ];
-
-    for (let i = 0; i < particleCount; i++) {
-      // Cylinder vortex distribution
-      const radius = 8 + Math.random() * 26;
-      const theta = Math.random() * Math.PI * 2;
-      const y = (Math.random() - 0.5) * 30;
-
-      positions[i * 3] = radius * Math.cos(theta);
-      positions[i * 3 + 1] = y;
-      positions[i * 3 + 2] = radius * Math.sin(theta);
-
-      const c = colorChoices[Math.floor(Math.random() * colorChoices.length)];
-      colors[i * 3] = c.r;
-      colors[i * 3 + 1] = c.g;
-      colors[i * 3 + 2] = c.b;
-    }
-
-    particleGeo.setAttribute("position", new THREE.BufferAttribute(positions, 3));
-    particleGeo.setAttribute("color", new THREE.BufferAttribute(colors, 3));
-
-    const particleMat = new THREE.PointsMaterial({
-      size: 0.12,
-      vertexColors: true,
-      transparent: true,
-      opacity: 0.85,
-      blending: THREE.AdditiveBlending,
-    });
-    const particles = new THREE.Points(particleGeo, particleMat);
-    scene.add(particles);
-
-    // 5. 3D Undulating Cyber Wireframe Grid Plane (Wave Floor)
-    const gridGeo = new THREE.PlaneGeometry(60, 60, 40, 40);
-    const gridMat = new THREE.MeshBasicMaterial({
-      color: 0x1e3a8a,
-      wireframe: true,
-      transparent: true,
-      opacity: 0.25,
-    });
-    const gridMesh = new THREE.Mesh(gridGeo, gridMat);
-    gridMesh.rotation.x = -Math.PI / 2.2;
-    gridMesh.position.y = -7;
-    gridMesh.position.z = -5;
-    scene.add(gridMesh);
-
-    // 6. Interactive Mouse & Scroll Tracking
+    // 6. Mouse & Scroll Interaction
     let mouseX = 0;
     let mouseY = 0;
     let targetX = 0;
@@ -151,12 +234,12 @@ export default function ThreeScene() {
     let scrollY = 0;
 
     const onMouseMove = (e: MouseEvent) => {
-      mouseX = (e.clientX - window.innerWidth / 2) * 0.0015;
-      mouseY = (e.clientY - window.innerHeight / 2) * 0.0015;
+      mouseX = (e.clientX - window.innerWidth / 2) * 0.001;
+      mouseY = (e.clientY - window.innerHeight / 2) * 0.001;
     };
 
     const onScroll = () => {
-      scrollY = window.scrollY * 0.003;
+      scrollY = window.scrollY * 0.002;
     };
 
     const onResize = () => {
@@ -169,46 +252,37 @@ export default function ThreeScene() {
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", onResize);
 
-    // 7. 60fps Animation Loop with Vertex Displacement
+    // 7. 60fps Animation Loop
     let clock = new THREE.Clock();
     let animId: number;
 
     const animate = () => {
       animId = requestAnimationFrame(animate);
-      const elapsedTime = clock.getElapsedTime();
+      const elapsed = clock.getElapsedTime();
 
-      // Smooth camera interpolation (Damping)
-      targetX += (mouseX - targetX) * 0.05;
-      targetY += (mouseY - targetY) * 0.05;
+      // Camera Damping
+      targetX += (mouseX - targetX) * 0.04;
+      targetY += (mouseY - targetY) * 0.04;
 
-      camera.position.x = targetX * 12;
-      camera.position.y = 3 - targetY * 8 - scrollY * 2;
+      camera.position.x = targetX * 10;
+      camera.position.y = -targetY * 6 - scrollY * 2;
       camera.lookAt(0, -scrollY * 1.5, 0);
 
-      // Rotate Holographic Core & Orbiting Rings
-      coreMesh.rotation.x = elapsedTime * 0.25 + scrollY * 0.5;
-      coreMesh.rotation.y = elapsedTime * 0.35 + scrollY * 0.8;
-      coreMesh.position.y = 1 + Math.sin(elapsedTime * 1.5) * 0.4;
+      // Gentle floating physics for resume sheets
+      resumeMeshes.forEach((mesh, idx) => {
+        mesh.position.y += Math.sin(elapsed * 1.2 + idx) * 0.008;
+        mesh.rotation.y += 0.0015;
+        mesh.rotation.z += Math.cos(elapsed * 0.8 + idx) * 0.001;
+      });
 
-      ring1.rotation.z = elapsedTime * 0.4;
-      ring2.rotation.x = elapsedTime * 0.3;
+      // Gentle floating for skill tokens
+      skillMeshes.forEach((mesh, idx) => {
+        mesh.position.y += Math.cos(elapsed * 1.4 + idx) * 0.009;
+        mesh.position.x += Math.sin(elapsed * 0.9 + idx) * 0.005;
+      });
 
-      // Rotate Cosmic Point Galaxy
-      particles.rotation.y = elapsedTime * 0.06;
-      particles.rotation.x = Math.sin(elapsedTime * 0.04) * 0.1;
-
-      // Undulate Cyber Wireframe Ground Vertices in Sine Wave
-      const posAttr = gridGeo.attributes.position;
-      for (let i = 0; i < posAttr.count; i++) {
-        const u = posAttr.getX(i);
-        const v = posAttr.getY(i);
-        const z =
-          Math.sin(u * 0.2 + elapsedTime * 1.8) *
-          Math.cos(v * 0.2 + elapsedTime * 1.8) *
-          0.8;
-        posAttr.setZ(i, z);
-      }
-      posAttr.needsUpdate = true;
+      // Animated Laser Scan sweep
+      laserBeam.position.y = Math.sin(elapsed * 1.8) * 10;
 
       renderer.render(scene, camera);
     };
