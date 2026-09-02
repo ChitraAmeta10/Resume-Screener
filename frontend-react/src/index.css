@@ -1417,6 +1417,23 @@ button { font-family: var(--body); cursor: pointer; }
   transform: scale(1.05);
 }
 
+/* ---------- True Three.js WebGL 3D Canvas ---------- */
+.lthree-canvas-wrap {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+.lthree-canvas-wrap canvas {
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
+}
+
 /* ---------- 60FPS Interactive Particle Canvas ---------- */
 .lparticle-canvas {
   position: fixed;
@@ -1425,7 +1442,7 @@ button { font-family: var(--body); cursor: pointer; }
   width: 100vw;
   height: 100vh;
   pointer-events: none;
-  z-index: 0;
+  z-index: 1;
 }
 
 /* ---------- 3D Floating Left & Right Wings (Hero Parallax) ---------- */

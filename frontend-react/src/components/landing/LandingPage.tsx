@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useScrollProgress } from "../../hooks/useScrollProgress";
+import ThreeScene from "./ThreeScene";
 import ParticleCanvas from "./ParticleCanvas";
 import LiveCodeTerminal from "./LiveCodeTerminal";
 import LandingNav from "./LandingNav";
@@ -26,6 +27,7 @@ export default function LandingPage({ onAuthed }: Props) {
 
   return (
     <div className="lpage">
+      <ThreeScene />
       <ParticleCanvas />
 
       <LandingNav
