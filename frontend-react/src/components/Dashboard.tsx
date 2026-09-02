@@ -91,10 +91,10 @@ export default function Dashboard({ user, onOpenJob, onNewJob }: Props) {
         </p>
         <div className="dash-empty__actions">
           <button className="btn btn--lg" onClick={onNewJob}>
-            <IconBriefcase size={16} /> + Create New Job
+            <IconBriefcase size={16} /> Create New Job
           </button>
           <button className="btn btn--ghost btn--lg" onClick={createSampleJob}>
-            <IconSparkle size={16} /> ⚡ Load Sample Role & Candidates
+            <IconSparkle size={16} /> Load Sample Role & Candidates
           </button>
         </div>
       </div>
@@ -133,7 +133,7 @@ export default function Dashboard({ user, onOpenJob, onNewJob }: Props) {
 
         <div className="dash-hero__actions">
           <button className="btn" onClick={onNewJob}>
-            <IconSparkle size={15} /> + New Job
+            <IconSparkle size={15} /> Create Job
           </button>
         </div>
       </div>

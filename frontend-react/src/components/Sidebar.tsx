@@ -89,7 +89,7 @@ export default function Sidebar({
                 Active Jobs <span className="count">{jobs.length}</span>
               </span>
               <button className="sidebar__add-btn" onClick={onNewJob} title="Create New Job">
-                + New
+                New Job
               </button>
             </div>
           )}
