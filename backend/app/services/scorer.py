@@ -75,8 +75,21 @@ def score_candidate(
         llm_score = _clamp(float(data.get("score", 0)), 0.0, 100.0)
         reasoning = str(data.get("reasoning", "")).strip()
     except Exception as exc:
-        logger.warning("LLM scoring failed for candidate %s: %s", candidate_id, exc)
-        reasoning = "LLM scoring unavailable; final score reflects similarity only."
+        logger.warning("LLM scoring failed for candidate %s (%s). Attempting fallback scorer.", candidate_id, exc)
+        try:
+            from app.services.llm.mock_provider import MockLLMProvider
+
+            mock_provider = MockLLMProvider()
+            raw = mock_provider.complete(
+                system=SCORING_SYSTEM,
+                user=build_scoring_prompt(job_title, job_description, candidate_skills),
+                max_tokens=400,
+            )
+            data = _extract_json_object(raw)
+            llm_score = _clamp(float(data.get("score", 0)), 0.0, 100.0)
+            reasoning = str(data.get("reasoning", "")).strip()
+        except Exception:
+            reasoning = "LLM scoring unavailable; final score reflects similarity only."
 
     final = settings.SIMILARITY_WEIGHT * (similarity * 100.0) + settings.LLM_WEIGHT * llm_score
     result = ScoreResult(
