@@ -772,4 +772,109 @@ body::after {
   100% { top: 100%; opacity: 0; }
 }
 
+/* ==========================================================================
+   MOBILE & TABLET RESPONSIVE REFINEMENTS (320px - 768px)
+   ========================================================================== */
+@media (max-width: 640px) {
+  .lhero {
+    padding: 100px 16px 40px;
+  }
+  .lhero__title {
+    font-size: clamp(28px, 8.5vw, 36px);
+  }
+  .lhero__sub {
+    font-size: 14.5px;
+    margin-bottom: 24px;
+  }
+  .lhero__actions {
+    flex-direction: column;
+    width: 100%;
+    gap: 10px;
+  }
+  .lhero__actions .btn {
+    width: 100%;
+    justify-content: center;
+  }
+  .lhero__card {
+    padding: 18px 16px;
+    border-radius: 16px;
+  }
+  .lhero__card-top {
+    flex-wrap: wrap;
+  }
+  .lhero__card-top .fit {
+    margin-left: 0;
+    margin-top: 4px;
+  }
+
+  .lshowcase, .lbento, .lplay, .lfaq {
+    padding: 50px 16px;
+  }
+  .lsection-head {
+    margin-bottom: 30px;
+  }
+  .lsection-title {
+    font-size: 24px;
+  }
+  .lsection-sub {
+    font-size: 13.5px;
+  }
+
+  .lshowcase__step {
+    padding: 14px 16px;
+  }
+  .lshowcase__card {
+    padding: 18px 16px;
+    min-height: auto;
+  }
+
+  .lbento__grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+  .lbento__item {
+    padding: 18px 16px;
+  }
+
+  .lplay__simulator {
+    padding: 18px 16px;
+  }
+  .lplay__sim-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .lplay__sim-score-box {
+    text-align: left;
+    margin-top: 6px;
+  }
+  .lplay__sim-cta {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+  .lplay__sim-cta .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .lcta {
+    padding: 30px 18px;
+  }
+  .lcta h2 {
+    font-size: 22px;
+  }
+
+  .lfooter {
+    padding: 30px 16px 20px;
+  }
+}
+
+/* Touch Device Cursor Suppression */
+@media (hover: none) and (pointer: coarse) {
+  .aww-cursor-dot,
+  .aww-cursor-ring {
+    display: none !important;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
