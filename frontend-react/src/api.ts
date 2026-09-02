@@ -83,6 +83,12 @@ export function errorDetail(e: unknown): string {
     const d = e.data as Record<string, unknown>;
     const detail = d.detail ?? d.message;
     if (typeof detail === "string") return detail;
+    // FastAPI validation errors return detail as an array/object
+    if (detail != null) return JSON.stringify(detail);
   }
+  if (e instanceof ApiError) {
+    return `Server error (${e.status}). Please try again.`;
+  }
+  if (e instanceof Error) return e.message;
   return "Something went wrong. Please try again.";
 }

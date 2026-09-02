@@ -94,6 +94,18 @@ def upload_resumes(
         except (ValueError, UnsupportedFileTypeError, ExtractionError) as exc:
             logger.warning("upload failed for %s: %s", filename, exc)
             errors.append(UploadError(filename=filename, error=str(exc)))
+        except OSError as exc:
+            logger.error(
+                "File-system error for %s (UPLOAD_DIR=%s): %s",
+                filename, settings.UPLOAD_DIR, exc,
+            )
+            errors.append(UploadError(
+                filename=filename,
+                error=f"Server storage error: {exc}. Check UPLOAD_DIR is writable.",
+            ))
+        except Exception as exc:
+            logger.exception("Unexpected error processing %s", filename)
+            errors.append(UploadError(filename=filename, error=str(exc)))
         finally:
             file.file.close()
 
