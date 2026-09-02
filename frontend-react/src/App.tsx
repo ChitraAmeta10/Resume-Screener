@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { api, errorDetail, setUnauthorizedHandler, tokenStore } from "./api";
 import { useToast } from "./toast";
+import LandingPage from "./components/landing/LandingPage";
 import AuthView from "./components/AuthView";
 import Sidebar, { type View } from "./components/Sidebar";
 import Dashboard from "./components/Dashboard";
@@ -42,7 +43,7 @@ export default function App() {
   if (booting) return null;
   if (!user)
     return (
-      <AuthView
+      <LandingPage
         onAuthed={(tok) => {
           tokenStore.set(tok);
           setBooting(true);
