@@ -746,6 +746,28 @@ html, body, #root {
   border-color: var(--sapphire-light);
   box-shadow: var(--shadow-lg);
 }
+.jobhead {
+  background: #FFFFFF;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: 26px 30px;
+  box-shadow: var(--shadow);
+  margin-bottom: 24px;
+}
+.jobhead__top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+.jobhead__badge {
+  display: inline-flex; align-items: center; gap: 7px;
+  font-size: 11.5px; font-weight: 700; color: var(--sapphire); font-family: var(--mono);
+  background: rgba(37, 99, 235, 0.08); border: 1px solid rgba(37, 99, 235, 0.2);
+  padding: 3px 10px; border-radius: 999px; margin-bottom: 8px;
+}
+.jobhead__badge .live-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--sapphire); box-shadow: 0 0 8px var(--sapphire); }
+.jobhead__title { font-family: var(--display); font-weight: 800; font-size: 26px; color: var(--ink); margin: 0; }
+.jobhead__desc { font-size: 14px; color: var(--muted); line-height: 1.6; margin: 0 0 20px; max-width: 80ch; }
+.jobhead__skills { display: flex; flex-direction: column; gap: 8px; border-top: 1px solid var(--line); padding-top: 16px; }
+.jobhead__skills-lbl { font-size: 11.5px; font-weight: 700; text-transform: uppercase; color: var(--faint); font-family: var(--mono); letter-spacing: .06em; }
+.jobhead__chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.jobhead__empty-skills { font-size: 12.5px; color: var(--faint); font-family: var(--mono); }
 .cand__top { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 12px; }
 .cand__avatar {
   width: 40px; height: 40px; border-radius: 10px;

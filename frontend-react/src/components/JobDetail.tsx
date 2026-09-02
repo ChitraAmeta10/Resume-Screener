@@ -148,26 +148,37 @@ export default function JobDetail({ job }: Props) {
   }
 
   return (
-    <>
+    <div className="jobview">
+      {/* Modern Ceramic Job Header */}
       <div className="jobhead">
-        <h1>{job.title}</h1>
-        <div className="chips">
-          {(job.required_skills || []).length ? (
-            job.required_skills.map((s) => (
-              <span className="chip req" key={s}>
-                {s}
-              </span>
-            ))
-          ) : (
-            <span>No skills detected</span>
-          )}
+        <div className="jobhead__top">
+          <div>
+            <div className="jobhead__badge">
+              <span className="live-dot" />
+              <span>Active Screening Pipeline</span>
+            </div>
+            <h1 className="jobhead__title">{job.title}</h1>
+          </div>
         </div>
+
         {job.description && (
-          <details className="jobdesc" open>
-            <summary>Job description</summary>
-            <p>{job.description}</p>
-          </details>
+          <p className="jobhead__desc">{job.description}</p>
         )}
+
+        <div className="jobhead__skills">
+          <span className="jobhead__skills-lbl">Extracted Required Skills ({job.required_skills?.length || 0}):</span>
+          <div className="jobhead__chips">
+            {(job.required_skills || []).length ? (
+              job.required_skills.map((s) => (
+                <span className="chip" key={s}>
+                  {s}
+                </span>
+              ))
+            ) : (
+              <span className="jobhead__empty-skills">No skills required</span>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* upload card */}
@@ -357,7 +368,7 @@ export default function JobDetail({ job }: Props) {
           </>
         )}
       </div>
-    </>
+    </div>
   );
 }
 
