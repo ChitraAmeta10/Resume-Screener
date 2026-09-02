@@ -1,10 +1,20 @@
 import { use3DTilt } from "../../hooks/use3DTilt";
-import { IconSparkle, IconUpload, IconGauge } from "../../icons";
+import { IconSparkle, IconUpload, IconGauge, IconStack, IconBriefcase, IconPeople } from "../../icons";
+import FloatingBadge from "./FloatingBadge";
+import HolographicDoc from "./HolographicDoc";
 
 interface Props {
   onOpenAuth: () => void;
   onExploreDemo: () => void;
 }
+
+const MARQUEE_ITEMS = [
+  { name: "Chitra Ameta", role: "AI Backend Lead", score: "94.8", match: "9/10 Skills", b: "strong" },
+  { name: "Alex Rivera", role: "Full-Stack Dev", score: "88.5", match: "8/10 Skills", b: "strong" },
+  { name: "Elena Rostova", role: "ML Platform Eng", score: "91.2", match: "9/10 Skills", b: "strong" },
+  { name: "David Kim", role: "Python Core Dev", score: "86.0", match: "7/10 Skills", b: "moderate" },
+  { name: "Sarah Chen", role: "Cloud Architect", score: "82.4", match: "7/10 Skills", b: "moderate" },
+];
 
 export default function LandingHero({ onOpenAuth, onExploreDemo }: Props) {
   const tiltMain = use3DTilt({ maxRotation: 9, scale: 1.02 });
@@ -12,6 +22,44 @@ export default function LandingHero({ onOpenAuth, onExploreDemo }: Props) {
 
   return (
     <section className="lhero">
+      {/* Floating 3D Left Wing Parallax Elements */}
+      <div className="lhero__float-wing lhero__float-wing--left">
+        <HolographicDoc
+          name="Chitra Ameta"
+          role="Senior AI Backend Engineer"
+          score="94.8"
+          skills={["Python", "FastAPI", "PostgreSQL", "Docker"]}
+          className="lhero__float-item lhero__float-item--1"
+        />
+        <FloatingBadge
+          icon={<IconSparkle size={18} />}
+          title="Direct XML Parsing"
+          subtitle="0.002s Execution Time"
+          score="⚡ Ultra Fast"
+          scoreColor="cyan"
+          className="lhero__float-item lhero__float-item--2"
+        />
+      </div>
+
+      {/* Floating 3D Right Wing Parallax Elements */}
+      <div className="lhero__float-wing lhero__float-wing--right">
+        <FloatingBadge
+          icon={<IconStack size={18} />}
+          title="Dual-Engine Scorer"
+          subtitle="Vector Distance + LLM"
+          score="96.5 AI"
+          scoreColor="strong"
+          className="lhero__float-item lhero__float-item--3"
+        />
+        <HolographicDoc
+          name="Alex Rivera"
+          role="Senior Full-Stack Architect"
+          score="89.2"
+          skills={["React", "TypeScript", "Node.js", "Redis"]}
+          className="lhero__float-item lhero__float-item--4"
+        />
+      </div>
+
       <div className="lhero__badge">
         <span className="lhero__badge-dot" />
         <IconSparkle size={13} />
@@ -108,6 +156,22 @@ export default function LandingHero({ onOpenAuth, onExploreDemo }: Props) {
             <div className="n">99.4%</div>
             <div className="l">Extraction Accuracy</div>
           </div>
+        </div>
+      </div>
+
+      {/* 3D Infinite Scrolling Ribbon Marquee */}
+      <div className="lhero__marquee-wrap">
+        <div className="lhero__marquee-track">
+          {[...MARQUEE_ITEMS, ...MARQUEE_ITEMS].map((item, idx) => (
+            <div key={idx} className="lhero__marquee-card">
+              <div className="avatar-dot">{item.name.slice(0, 2).toUpperCase()}</div>
+              <div>
+                <div className="name">{item.name}</div>
+                <div className="role">{item.role} · {item.match}</div>
+              </div>
+              <span className={`fit ${item.b}`}>{item.score}</span>
+            </div>
+          ))}
         </div>
       </div>
     </section>

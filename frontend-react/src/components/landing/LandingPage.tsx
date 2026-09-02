@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { useScrollProgress } from "../../hooks/useScrollProgress";
+import ParticleCanvas from "./ParticleCanvas";
+import LiveCodeTerminal from "./LiveCodeTerminal";
 import LandingNav from "./LandingNav";
 import LandingHero from "./LandingHero";
 import ScrollShowcase from "./ScrollShowcase";
@@ -24,6 +26,8 @@ export default function LandingPage({ onAuthed }: Props) {
 
   return (
     <div className="lpage">
+      <ParticleCanvas />
+
       <LandingNav
         scrollProgress={scrollProgress}
         onOpenAuth={() => setAuthModalOpen(true)}
@@ -36,6 +40,8 @@ export default function LandingPage({ onAuthed }: Props) {
         />
 
         <ScrollShowcase />
+
+        <LiveCodeTerminal />
 
         <BentoGrid />
 
